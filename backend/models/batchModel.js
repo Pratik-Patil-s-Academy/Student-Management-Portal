@@ -1,30 +1,32 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const batchSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
     trim: true,
-    // Example: "Morning Batch A", "Remedial Batch 1"
+    unique: true
   },
   standard: {
     type: String,
     required: true,
-    trim: true,
-    // Example: "10th", "12th Science", "11th Commerce"
+    enum: ['11', '12', 'Others']
   },
   time: {
     startTime: {
       type: String,
       required: true,
-      // Format: "09:00 AM"
     },
     endTime: {
       type: String,
       required: true,
-      // Format: "11:00 AM"
     }
   },
+  days: [{
+    type: String,
+    enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    required: true
+  }],
   students: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student'
@@ -33,5 +35,4 @@ const batchSchema = new mongoose.Schema({
   timestamps: true
 });
 
-
-module.exports = mongoose.model('Batch', batchSchema);
+export const Batch = mongoose.model("Batch", batchSchema);

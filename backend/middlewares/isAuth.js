@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { User } from "../models/userModel.js"; //need to change 
+import { Admin } from "../models/adminModel.js"; //need to change 
 export const isAuth = async (req, res, next) => {
   try {
     const token = req.cookies.token;
@@ -15,7 +15,7 @@ export const isAuth = async (req, res, next) => {
         message: "token expired",
       });
 
-    req.user = await User.findById(decodedData.id);
+    req.user = await Admin.findById(decodedData.id);
 
     next();
   } catch (error) {

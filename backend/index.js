@@ -5,7 +5,12 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cloudinary from 'cloudinary';
 import cors from 'cors';
-
+import { createAdmin } from './scripts/createAdmin.js';
+import adminRoutes from './routes/adminRoutes.js';
+import admissionRoutes from './routes/admissionRoutes.js';
+import batchRoutes from './routes/batchRoutes.js';
+import studentRoutes from './routes/studentRoutes.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
 
 dotenv.config();
 const port=process.env.PORT || 5005;
@@ -35,8 +40,14 @@ app.get('/api/health', (req, res) => {
 }); 
 
 
+app.use('/api/admin', adminRoutes);
+app.use('/api/admissions', admissionRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/batches', batchRoutes);
+app.use('/api/attendance', attendanceRoutes);
 
 connectDb().then(() => {
+  createAdmin();
   app.listen(process.env.PORT || port, () => {
     console.log(`Server is running on http://localhost:${process.env.PORT || port}`);
   });

@@ -39,4 +39,5 @@ const attendanceSchema = new mongoose.Schema({
 // 🔒 Prevent duplicate attendance for same batch + date
 attendanceSchema.index({ batchId: 1, date: 1 }, { unique: true });
 
-export default mongoose.model("Attendance", attendanceSchema);
+export const Attendance = mongoose.model("Attendance", attendanceSchema);
+

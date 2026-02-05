@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
-const studentSchema = new mongoose.Schema({
+const admissionSchema = new mongoose.Schema({
+  // ===== Personal Details =====
   personalDetails: {
     fullName: { type: String, required: true },
     address: { type: String },
@@ -9,6 +10,8 @@ const studentSchema = new mongoose.Schema({
     caste: { type: String },
     photoUrl: { type: String }
   },
+
+  // ===== Parent Details =====
   parents: {
     father: {
       name: String,
@@ -19,12 +22,15 @@ const studentSchema = new mongoose.Schema({
       occupation: String
     }
   },
+
   // ===== Contact =====
   contact: {
     parentMobile: { type: String, required: true },
     studentMobile: { type: String },
     email: { type: String }
   },
+
+  // ===== Academic Details (Embedded) =====
   academics: {
     ssc: {
       board: {
@@ -35,6 +41,7 @@ const studentSchema = new mongoose.Schema({
       percentageOrCGPA: Number,
       mathsMarks: Number
     },
+
     hsc: {
       board: {
         type: String,
@@ -45,6 +52,8 @@ const studentSchema = new mongoose.Schema({
       mathsMarks: Number
     }
   },
+
+  // ===== Admission (Office Use) =====
   admission: {
     reference: String,
     admissionDate: Date,
@@ -55,14 +64,16 @@ const studentSchema = new mongoose.Schema({
     ref: "Batch"
   },
   rollno: {
-    type: Number,
- 
+    type: Number
   },
+
+
   status: {
     type: String,
-    enum: ["Admitted", "Not Admitted", "Dropped"],
-    default: "Admitted"
+    enum: ["Pending", "Approved", "Rejected"],
+    default: "Pending"
   }
+
 }, { timestamps: true });
 
-export const Student = mongoose.model("Student", studentSchema);
+export const Admission = mongoose.model("Admission", admissionSchema);
