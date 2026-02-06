@@ -11,6 +11,7 @@ import admissionRoutes from './routes/admissionRoutes.js';
 import batchRoutes from './routes/batchRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
+import testRoutes from './routes/testRoutes.js';
 
 dotenv.config();
 const port=process.env.PORT || 5005;
@@ -45,6 +46,7 @@ app.use('/api/admissions', admissionRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/batches', batchRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/tests',testRoutes);
 
 connectDb().then(() => {
   createAdmin();
