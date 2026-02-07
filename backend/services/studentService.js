@@ -55,7 +55,7 @@ export const validateStudentUpdate = async (studentId, rollno, parentMobile, stu
       if (existingStudent) {
         throw new Error('Roll number already assigned to another student');
       }
-      
+
       const existingAdmission = await Admission.findOne({ rollno: rollNumber });
       if (existingAdmission) {
         throw new Error('Roll number already exists in admissions');
@@ -227,5 +227,10 @@ export const removeBatchFromStudentRecord = async (studentId) => {
 };
 
 export const fetchStudentsWithNoBatch = async () => {
-  return await Student.find({ batch: { $exists: false } });
+  return await Student.find({
+    $or: [
+      { batch: { $exists: false } },
+      { batch: null }
+    ]
+  });
 };

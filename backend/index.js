@@ -1,4 +1,4 @@
-import  express from 'express';
+import express from 'express';
 import dotenv from 'dotenv';
 import connectDb from './db/db.js';
 import bodyParser from 'body-parser';
@@ -13,15 +13,18 @@ import studentRoutes from './routes/studentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import inquiryRoutes from './routes/inquiryRoutes.js';
+import healthRoutes from './routes/healthRoutes.js';
 import logger from './utils/logger.js';
 import requestLogger from './middlewares/requestLogger.js';
 import { generalLimiter, authLimiter } from './middlewares/rateLimiter.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './swagger/swagger.js';
 
 dotenv.config();
-const port=process.env.PORT || 5005;
+const port = process.env.PORT || 5005;
 
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174','http://localhost:5500', 'https://ppacademy.vercel.app'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5500', 'https://ppacademy.vercel.app'],
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
@@ -29,15 +32,15 @@ const corsOptions = {
 };
 
 cloudinary.v2.config({
-    cloud_name: process.env.Cloud_Name,
-    api_key: process.env.Cloud_Api,
-    api_secret: process.env.Cloud_Secret,
-  });
+  cloud_name: process.env.Cloud_Name,
+  api_key: process.env.Cloud_Api,
+  api_secret: process.env.Cloud_Secret,
+});
 
-const app=express();
+const app = express();
 
 app.use(cors(corsOptions));
-app.use(bodyParser.json()); 
+app.use(bodyParser.json());
 app.use(express.json());
 app.use(cookieParser());
 
@@ -45,9 +48,7 @@ app.use(requestLogger);
 
 app.use(generalLimiter);
 
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ message: 'API is healthy' });
-}); 
+app.use('/api/health', healthRoutes);
 
 // Routes with specific rate limiters
 app.use('/api/admin', authLimiter, adminRoutes);
@@ -57,6 +58,9 @@ app.use('/api/batches', batchRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/inquiries', inquiryRoutes);
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use((err, req, res, next) => {
   logger.error(`[ERROR] ${req.method} ${req.url} - ${err.message}`, {
