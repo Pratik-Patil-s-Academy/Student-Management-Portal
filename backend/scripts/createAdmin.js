@@ -2,40 +2,31 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import {Admin} from '../models/adminModel.js';
 import dotenv from 'dotenv';
+import logger from '../utils/logger.js';
 
 dotenv.config();
 
 export const createAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URL);
-
-    const adminData = {
-      name: 'Admin',
-      email: 'admin@example.com',
-      password: 'admin123'
-    };
-
-    const existingAdmin = await Admin.findOne({ email: adminData.email });
+    const existingAdmin = await Admin.findOne({ email: "admin@gmail.com" });
     if (existingAdmin) {
-      console.log('Admin already exists');
+      logger.info("Admin already exists");
+      console.log("Admin already exists");
       return;
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(adminData.password, salt);
-
+    const hashedPassword = await bcrypt.hash("admin123", 10);
     const admin = await Admin.create({
-      name: adminData.name,
-      email: adminData.email,
-      password: hashedPassword
+      name: "Admin",
+      email: "admin@gmail.com",
+      password: hashedPassword,
     });
 
-    console.log('Admin created successfully:', {
-      name: admin.name,
-      email: admin.email
-    });
+    logger.info("Admin created successfully", { adminId: admin._id });
+    console.log("Admin created successfully");
 
   } catch (error) {
-    console.error('Error creating admin:', error);
+    logger.error("Error creating admin", { error: error.message, stack: error.stack });
+    console.error("Error creating admin:", error);
   }
 };

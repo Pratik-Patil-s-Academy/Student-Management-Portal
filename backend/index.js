@@ -12,6 +12,9 @@ import batchRoutes from './routes/batchRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import testRoutes from './routes/testRoutes.js';
+import logger from './utils/logger.js';
+import requestLogger from './middleware/requestLogger.js';
+import { generalLimiter, authLimiter } from './middleware/rateLimiter.js';
 
 dotenv.config();
 const port=process.env.PORT || 5005;
@@ -31,26 +34,46 @@ cloudinary.v2.config({
   });
 
 const app=express();
+
 app.use(cors(corsOptions));
 app.use(bodyParser.json()); 
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(requestLogger);
+
+app.use(generalLimiter);
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'API is healthy' });
 }); 
 
-
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', authLimiter, adminRoutes);
 app.use('/api/admissions', admissionRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/batches', batchRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/tests',testRoutes);
 
+app.use((err, req, res, next) => {
+  logger.error(`[ERROR] ${req.method} ${req.url} - ${err.message}`, {
+    stack: err.stack,
+    statusCode: err.status || 500
+  });
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error'
+  });
+});
+
 connectDb().then(() => {
   createAdmin();
   app.listen(process.env.PORT || port, () => {
+    logger.info(`Server started successfully on port ${process.env.PORT || port}`);
     console.log(`Server is running on http://localhost:${process.env.PORT || port}`);
   });
+}).catch((error) => {
+  logger.error(`Database connection failed: ${error.message}`, { stack: error.stack });
+  process.exit(1);
 });
