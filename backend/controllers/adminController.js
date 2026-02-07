@@ -2,27 +2,12 @@ import { Admin } from '../models/adminModel.js';
 import bcrypt from 'bcrypt';
 import generateToken from '../utils/generateToken.js';
 import TryCatch from '../utils/TryCatch.js';
+import * as adminService from '../services/adminService.js';
 
 export const loginAdmin = TryCatch(async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
-  }
-
-  if (!email.includes('@')) {
-    return res.status(400).json({ message: 'Invalid email format' });
-  }
-
-  const admin = await Admin.findOne({ email });
-  if (!admin) {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
-
-  const isPasswordMatch = await bcrypt.compare(password, admin.password);
-  if (!isPasswordMatch) {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
+  adminService.validateLoginCredentials(req.body.email, req.body.password);
+  
+  const admin = await adminService.authenticateAdmin(req.body.email, req.body.password);
 
   generateToken(admin, res);
 
@@ -50,10 +35,7 @@ export const logOutUser = TryCatch(async (req, res) => {
 });
 
 export const getAdminProfile = TryCatch(async (req, res) => {
-  const admin = await Admin.findById(req.user._id).select('-password');
-  if (!admin) {
-    return res.status(404).json({ message: 'Admin not found' });
-  }
+  const admin = await adminService.fetchAdminProfile(req.user._id);
 
   res.status(200).json({
     success: true,

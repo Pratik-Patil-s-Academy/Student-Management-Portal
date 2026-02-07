@@ -8,7 +8,7 @@ import {
 } from '../controllers/admissionController.js';
 import { isAuth } from '../middlewares/isAuth.js';
 import uploadFile from '../middlewares/multer.js';
-import { createLimiter, uploadLimiter } from '../middleware/rateLimiter.js';
+import { createLimiter, uploadLimiter } from '../middlewares/rateLimiter.js';
 
 const router = express.Router();
 

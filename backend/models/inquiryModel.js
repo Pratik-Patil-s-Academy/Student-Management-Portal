@@ -26,7 +26,8 @@ const inquirySchema = new mongoose.Schema({
 
   contact: {
     parentMobile: { type: String, required: true },
-    studentMobile: String
+    studentMobile: String,
+    email: String
   },
 
   reference: String,
@@ -55,8 +56,14 @@ const inquirySchema = new mongoose.Schema({
     }
   },
 
-  specialRequirement: String
+  specialRequirement: String,
+
+  status: {
+    type: String,
+    enum: ["New", "In Progress", "Follow Up Required", "Converted", "Closed"],
+    default: "New"
+  }
 
 }, { timestamps: true });
 
-export default mongoose.model("Inquiry", inquirySchema);
+export const Inquiry = mongoose.model("Inquiry", inquirySchema);

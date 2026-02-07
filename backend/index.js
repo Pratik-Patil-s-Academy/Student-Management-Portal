@@ -12,9 +12,10 @@ import batchRoutes from './routes/batchRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import testRoutes from './routes/testRoutes.js';
+import inquiryRoutes from './routes/inquiryRoutes.js';
 import logger from './utils/logger.js';
-import requestLogger from './middleware/requestLogger.js';
-import { generalLimiter, authLimiter } from './middleware/rateLimiter.js';
+import requestLogger from './middlewares/requestLogger.js';
+import { generalLimiter, authLimiter } from './middlewares/rateLimiter.js';
 
 dotenv.config();
 const port=process.env.PORT || 5005;
@@ -48,12 +49,14 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ message: 'API is healthy' });
 }); 
 
+// Routes with specific rate limiters
 app.use('/api/admin', authLimiter, adminRoutes);
 app.use('/api/admissions', admissionRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/batches', batchRoutes);
 app.use('/api/attendance', attendanceRoutes);
-app.use('/api/tests',testRoutes);
+app.use('/api/tests', testRoutes);
+app.use('/api/inquiries', inquiryRoutes);
 
 app.use((err, req, res, next) => {
   logger.error(`[ERROR] ${req.method} ${req.url} - ${err.message}`, {
