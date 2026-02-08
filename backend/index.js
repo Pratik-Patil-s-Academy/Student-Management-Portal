@@ -24,7 +24,7 @@ dotenv.config();
 const port = process.env.PORT || 5005;
 
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5500', 'https://ppacademy.vercel.app', 'https://temp-smp.vercel.app'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5500', 'https://ppacademy.vercel.app', 'https://temp-smp.vercel.app', 'https://pratikpatilsacademy.vercel.app'],
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
