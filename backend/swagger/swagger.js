@@ -14,7 +14,7 @@ const options = {
                 description: 'Local server',
             },
             {
-                url: 'https://ppacademy.vercel.app',
+                url: 'https://student-management-portal-jtx5.onrender.com',
                 description: 'Production server',
             },
         ],
