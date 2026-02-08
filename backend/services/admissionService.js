@@ -4,7 +4,12 @@ import getDataUrl from '../utils/urlgenerator.js';
 import cloudinary from '../utils/cloudinary.js';
 
 export const validateAdmissionData = (data) => {
-  const { fullName, parentMobile, studentMobile, email, gender } = data;
+  // Handle both nested and flat structures
+  const fullName = data.personalDetails?.fullName || data.fullName;
+  const parentMobile = data.contact?.parentMobile || data.parentMobile;
+  const studentMobile = data.contact?.studentMobile || data.studentMobile;
+  const email = data.contact?.email || data.email;
+  const gender = data.personalDetails?.gender || data.gender;
 
   if (!fullName || fullName.trim().length < 2) {
     throw new Error('Full name is required (min 2 characters)');
@@ -63,62 +68,117 @@ export const uploadStudentPhoto = async (file) => {
 };
 
 export const createAdmissionRecord = async (data, photoUrl) => {
-  const {
-    fullName, address, dob, gender, caste,
-    fatherName, fatherOccupation, motherName, motherOccupation,
-    parentMobile, studentMobile, email,
-    sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
-    hscBoard, hscCollegeName, hscPercentageOrCGPA, hscMathsMarks,
-    reference, admissionDate, targetExamination, batch, rollno
-  } = data;
+  // Handle both nested and flat structures
+  let admissionData;
 
-  const admissionData = {
-    personalDetails: {
-      fullName: fullName.trim(),
-      address: address?.trim() || '',
-      dob: dob || null,
-      gender: gender || null,
-      caste: caste?.trim() || '',
-      photoUrl
-    },
-    parents: {
-      father: {
-        name: fatherName?.trim() || '',
-        occupation: fatherOccupation?.trim() || ''
+  // Check if data is already in nested format (from frontend)
+  if (data.personalDetails || data.parents || data.academics || data.contact || data.admission) {
+    admissionData = {
+      personalDetails: {
+        fullName: data.personalDetails?.fullName?.trim() || '',
+        address: data.personalDetails?.address?.trim() || '',
+        dob: data.personalDetails?.dob || null,
+        gender: data.personalDetails?.gender || null,
+        caste: data.personalDetails?.caste?.trim() || '',
+        photoUrl: data.personalDetails?.photoUrl || photoUrl || ''
       },
-      mother: {
-        name: motherName?.trim() || '',
-        occupation: motherOccupation?.trim() || ''
-      }
-    },
-    contact: {
-      parentMobile,
-      studentMobile: studentMobile || '',
-      email: email?.trim() || ''
-    },
-    academics: {
-      ssc: {
-        board: sscBoard || null,
-        schoolName: sscSchoolName?.trim() || '',
-        percentageOrCGPA: sscPercentageOrCGPA ? Number(sscPercentageOrCGPA) : null,
-        mathsMarks: sscMathsMarks ? Number(sscMathsMarks) : null
+      parents: {
+        father: {
+          name: data.parents?.father?.name?.trim() || '',
+          occupation: data.parents?.father?.occupation?.trim() || ''
+        },
+        mother: {
+          name: data.parents?.mother?.name?.trim() || '',
+          occupation: data.parents?.mother?.occupation?.trim() || ''
+        }
       },
-      hsc: {
-        board: hscBoard || null,
-        collegeName: hscCollegeName?.trim() || '',
-        percentageOrCGPA: hscPercentageOrCGPA ? Number(hscPercentageOrCGPA) : null,
-        mathsMarks: hscMathsMarks ? Number(hscMathsMarks) : null
-      }
-    },
-    admission: {
-      reference: reference?.trim() || '',
-      admissionDate: admissionDate || null,
-      targetExamination: targetExamination?.trim() || ''
-    },
-    batch: batch || null,
-    rollno: rollno ? Number(rollno) : null,
-    status: 'Pending'
-  };
+      contact: {
+        parentMobile: data.contact?.parentMobile || '',
+        studentMobile: data.contact?.studentMobile || '',
+        email: data.contact?.email?.trim() || ''
+      },
+      academics: {
+        ssc: {
+          board: data.academics?.ssc?.board || null,
+          schoolName: data.academics?.ssc?.schoolName?.trim() || '',
+          percentageOrCGPA: data.academics?.ssc?.percentageOrCGPA ? Number(data.academics.ssc.percentageOrCGPA) : null,
+          mathsMarks: data.academics?.ssc?.mathsMarks ? Number(data.academics.ssc.mathsMarks) : null
+        },
+        hsc: {
+          board: data.academics?.hsc?.board || null,
+          collegeName: data.academics?.hsc?.collegeName?.trim() || '',
+          percentageOrCGPA: data.academics?.hsc?.percentageOrCGPA ? Number(data.academics.hsc.percentageOrCGPA) : null,
+          mathsMarks: data.academics?.hsc?.mathsMarks ? Number(data.academics.hsc.mathsMarks) : null
+        }
+      },
+      admission: {
+        reference: data.admission?.reference?.trim() || '',
+        admissionDate: data.admission?.admissionDate || null,
+        targetExamination: data.admission?.targetExamination?.trim() || ''
+      },
+      batch: data.batch || null,
+      rollno: data.rollno ? Number(data.rollno) : null,
+      status: data.status || 'Pending'
+    };
+  } else {
+    // Handle flat structure (backward compatibility)
+    const {
+      fullName, address, dob, gender, caste,
+      fatherName, fatherOccupation, motherName, motherOccupation,
+      parentMobile, studentMobile, email,
+      sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
+      hscBoard, hscCollegeName, hscPercentageOrCGPA, hscMathsMarks,
+      reference, admissionDate, targetExamination, batch, rollno
+    } = data;
+
+    admissionData = {
+      personalDetails: {
+        fullName: fullName.trim(),
+        address: address?.trim() || '',
+        dob: dob || null,
+        gender: gender || null,
+        caste: caste?.trim() || '',
+        photoUrl
+      },
+      parents: {
+        father: {
+          name: fatherName?.trim() || '',
+          occupation: fatherOccupation?.trim() || ''
+        },
+        mother: {
+          name: motherName?.trim() || '',
+          occupation: motherOccupation?.trim() || ''
+        }
+      },
+      contact: {
+        parentMobile,
+        studentMobile: studentMobile || '',
+        email: email?.trim() || ''
+      },
+      academics: {
+        ssc: {
+          board: sscBoard || null,
+          schoolName: sscSchoolName?.trim() || '',
+          percentageOrCGPA: sscPercentageOrCGPA ? Number(sscPercentageOrCGPA) : null,
+          mathsMarks: sscMathsMarks ? Number(sscMathsMarks) : null
+        },
+        hsc: {
+          board: hscBoard || null,
+          collegeName: hscCollegeName?.trim() || '',
+          percentageOrCGPA: hscPercentageOrCGPA ? Number(hscPercentageOrCGPA) : null,
+          mathsMarks: hscMathsMarks ? Number(hscMathsMarks) : null
+        }
+      },
+      admission: {
+        reference: reference?.trim() || '',
+        admissionDate: admissionDate || null,
+        targetExamination: targetExamination?.trim() || ''
+      },
+      batch: batch || null,
+      rollno: rollno ? Number(rollno) : null,
+      status: 'Pending'
+    };
+  }
 
   return await Admission.create(admissionData);
 };
@@ -131,11 +191,11 @@ export const fetchPendingAdmissions = async () => {
 
 export const fetchAdmissionById = async (id) => {
   const admission = await Admission.findById(id).populate('batch');
-  
+
   if (!admission) {
     throw new Error('Admission not found');
   }
-  
+
   return admission;
 };
 
