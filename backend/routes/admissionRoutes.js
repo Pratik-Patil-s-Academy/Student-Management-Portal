@@ -152,7 +152,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.post('/create', uploadLimiter, uploadFile, createAdmission);
+router.post('/create', uploadFile, createAdmission);
 
 /**
  * @swagger

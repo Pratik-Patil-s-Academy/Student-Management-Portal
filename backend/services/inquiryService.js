@@ -232,3 +232,26 @@ export const updateInquiryStatusRecord = async (inquiryId, status) => {
 
   return inquiry;
 };
+
+export const calculateInquiryStats = async () => {
+  const stats = await Inquiry.aggregate([
+    {
+      $group: {
+        _id: '$status',
+        count: { $sum: 1 }
+      }
+    }
+  ]);
+
+  const formattedStats = {
+    total: 0,
+    byStatus: {}
+  };
+
+  stats.forEach(stat => {
+    formattedStats.byStatus[stat._id] = stat.count;
+    formattedStats.total += stat.count;
+  });
+
+  return formattedStats;
+};

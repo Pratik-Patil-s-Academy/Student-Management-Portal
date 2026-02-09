@@ -68,12 +68,17 @@ export const uploadStudentPhoto = async (file) => {
   }
 
   const fileUrl = getDataUrl(file);
-  const cloudinaryResponse = await cloudinary.uploader.upload(fileUrl.content, {
-    folder: 'student_photos',
-    resource_type: 'image'
-  });
-
-  return cloudinaryResponse.secure_url;
+  try {
+    const cloudinaryResponse = await cloudinary.uploader.upload(fileUrl.content, {
+      folder: 'student_photos',
+      resource_type: 'image'
+    });
+    console.log('Cloudinary Response:', cloudinaryResponse);
+    return cloudinaryResponse.secure_url;
+  } catch (error) {
+    console.error('Cloudinary Upload Error:', error);
+    throw new Error('Image upload failed');
+  }
 };
 
 export const createAdmissionRecord = async (data, photoUrl) => {
@@ -89,7 +94,7 @@ export const createAdmissionRecord = async (data, photoUrl) => {
         dob: data.personalDetails?.dob || null,
         gender: data.personalDetails?.gender || null,
         caste: data.personalDetails?.caste?.trim() || '',
-        photoUrl: data.personalDetails?.photoUrl || photoUrl || ''
+        photoUrl: photoUrl || data.personalDetails?.photoUrl || ''
       },
       parents: {
         father: {
