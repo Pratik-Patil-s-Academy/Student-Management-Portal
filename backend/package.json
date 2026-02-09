@@ -23,7 +23,7 @@
     "crypto": "^1.0.1",
     "datauri": "^4.1.0",
     "dotenv": "^17.2.3",
-    "email-verifier": "^0.4.1",
+    "email-verifier": "^0.0.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "express-session": "^1.19.0",

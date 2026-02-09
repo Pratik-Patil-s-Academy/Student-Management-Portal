@@ -21,7 +21,7 @@ export const markAttendance = TryCatch(async (req, res) => {
 
 export const getAttendanceByBatch = TryCatch(async (req, res) => {
   const { batchId } = req.params;
-  const { startDate, endDate } = req.body;
+  const { startDate, endDate } = req.query;
 
   const attendance = await attendanceService.fetchAttendanceByBatch(batchId, startDate, endDate);
 
