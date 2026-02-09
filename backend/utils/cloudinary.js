@@ -8,6 +8,6 @@ cloudinary.config({
   api_key: process.env.Cloud_Api,
   api_secret: process.env.Cloud_Secret,
 });
-console.log(cloudinary);
+
 
 export default cloudinary;
