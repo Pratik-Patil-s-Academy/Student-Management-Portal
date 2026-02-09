@@ -98,7 +98,7 @@ export const updateStudentRecord = async (studentId, updateData, photoUrl) => {
     parentMobile, studentMobile, email,
     sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
     hscBoard, hscCollegeName, hscPercentageOrCGPA, hscMathsMarks,
-    reference, admissionDate, targetExamination, batch, rollno, status
+    reference, admissionDate, targetExamination, standard, batch, rollno, status
   } = updateData;
 
   if (fullName) student.personalDetails.fullName = fullName.trim();
@@ -131,6 +131,7 @@ export const updateStudentRecord = async (studentId, updateData, photoUrl) => {
   if (admissionDate) student.admission.admissionDate = admissionDate;
   if (targetExamination !== undefined) student.admission.targetExamination = targetExamination.trim();
 
+  if (standard) student.standard = standard;
   if (batch !== undefined) student.batch = batch;
   if (rollno !== undefined) student.rollno = rollno ? Number(rollno) : null;
   if (status) student.status = status;

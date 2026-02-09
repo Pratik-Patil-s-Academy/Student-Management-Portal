@@ -34,6 +34,12 @@ const inquirySchema = new mongoose.Schema({
 
   interestedStudentNote: String,
 
+  standard: {
+    type: String,
+    required: true,
+    enum: ['11', '12', 'Others']
+  },
+
   academics: {
     ssc: {
       board: {
