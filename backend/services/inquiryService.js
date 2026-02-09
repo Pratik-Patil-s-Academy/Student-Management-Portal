@@ -1,7 +1,12 @@
 import { Inquiry } from '../models/inquiryModel.js';
 
 export const validateInquiryData = (data) => {
-  const { fullName, parentMobile, studentMobile, email, gender } = data;
+  // Handle both nested and flat structures
+  const fullName = data.studentDetails?.fullName || data.fullName;
+  const parentMobile = data.contact?.parentMobile || data.parentMobile;
+  const studentMobile = data.contact?.studentMobile || data.studentMobile;
+  const email = data.contact?.email || data.email;
+  const gender = data.studentDetails?.gender || data.gender;
 
   if (!fullName || fullName.trim().length < 2) {
     throw new Error('Full name is required (min 2 characters)');
@@ -25,55 +30,104 @@ export const validateInquiryData = (data) => {
 };
 
 export const createInquiryRecord = async (data) => {
-  const {
-    fullName, gender, address, fatherName, fatherOccupation,
-    motherName, motherOccupation, parentMobile, studentMobile, email,
-    reference, interestedStudentNote, sscBoard, sscSchoolName,
-    sscPercentageOrCGPA, sscMathsMarks, eleventhBoard, eleventhCollegeName,
-    eleventhPercentageOrCGPA, eleventhMathsMarks, specialRequirement, inquiryDate
-  } = data;
+  // Handle both nested and flat structures
+  let inquiryData;
 
-  const inquiryData = {
-    inquiryDate: inquiryDate || Date.now(),
-    studentDetails: {
-      fullName: fullName.trim(),
-      gender: gender || null,
-      address: address?.trim() || ''
-    },
-    parents: {
-      father: {
-        name: fatherName?.trim() || '',
-        occupation: fatherOccupation?.trim() || ''
+  // Check if data is already in nested format (from frontend)
+  if (data.studentDetails || data.parents || data.academics || data.contact) {
+    inquiryData = {
+      inquiryDate: data.inquiryDate || Date.now(),
+      studentDetails: {
+        fullName: data.studentDetails?.fullName?.trim() || '',
+        gender: data.studentDetails?.gender || null,
+        address: data.studentDetails?.address?.trim() || ''
       },
-      mother: {
-        name: motherName?.trim() || '',
-        occupation: motherOccupation?.trim() || ''
-      }
-    },
-    contact: {
-      parentMobile,
-      studentMobile: studentMobile || '',
-      email: email?.trim() || ''
-    },
-    reference: reference?.trim() || '',
-    interestedStudentNote: interestedStudentNote?.trim() || '',
-    academics: {
-      ssc: {
-        board: sscBoard || null,
-        schoolName: sscSchoolName?.trim() || '',
-        percentageOrCGPA: sscPercentageOrCGPA ? Number(sscPercentageOrCGPA) : null,
-        mathsMarks: sscMathsMarks ? Number(sscMathsMarks) : null
+      parents: {
+        father: {
+          name: data.parents?.father?.name?.trim() || '',
+          occupation: data.parents?.father?.occupation?.trim() || ''
+        },
+        mother: {
+          name: data.parents?.mother?.name?.trim() || '',
+          occupation: data.parents?.mother?.occupation?.trim() || ''
+        }
       },
-      eleventh: {
-        board: eleventhBoard || null,
-        collegeName: eleventhCollegeName?.trim() || '',
-        percentageOrCGPA: eleventhPercentageOrCGPA ? Number(eleventhPercentageOrCGPA) : null,
-        mathsMarks: eleventhMathsMarks ? Number(eleventhMathsMarks) : null
-      }
-    },
-    specialRequirement: specialRequirement?.trim() || '',
-    status: 'New'
-  };
+      contact: {
+        parentMobile: data.contact?.parentMobile || '',
+        studentMobile: data.contact?.studentMobile || '',
+        email: data.contact?.email?.trim() || ''
+      },
+      reference: data.reference?.trim() || '',
+      interestedStudentNote: data.interestedStudentNote?.trim() || '',
+      academics: {
+        ssc: {
+          board: data.academics?.ssc?.board || null,
+          schoolName: data.academics?.ssc?.schoolName?.trim() || '',
+          percentageOrCGPA: data.academics?.ssc?.percentageOrCGPA ? Number(data.academics.ssc.percentageOrCGPA) : null,
+          mathsMarks: data.academics?.ssc?.mathsMarks ? Number(data.academics.ssc.mathsMarks) : null
+        },
+        eleventh: {
+          board: data.academics?.eleventh?.board || null,
+          collegeName: data.academics?.eleventh?.collegeName?.trim() || '',
+          percentageOrCGPA: data.academics?.eleventh?.percentageOrCGPA ? Number(data.academics.eleventh.percentageOrCGPA) : null,
+          mathsMarks: data.academics?.eleventh?.mathsMarks ? Number(data.academics.eleventh.mathsMarks) : null
+        }
+      },
+      specialRequirement: data.specialRequirement?.trim() || '',
+      status: data.status || 'New'
+    };
+  } else {
+    // Handle flat structure (backward compatibility)
+    const {
+      fullName, gender, address, fatherName, fatherOccupation,
+      motherName, motherOccupation, parentMobile, studentMobile, email,
+      reference, interestedStudentNote, sscBoard, sscSchoolName,
+      sscPercentageOrCGPA, sscMathsMarks, eleventhBoard, eleventhCollegeName,
+      eleventhPercentageOrCGPA, eleventhMathsMarks, specialRequirement, inquiryDate
+    } = data;
+
+    inquiryData = {
+      inquiryDate: inquiryDate || Date.now(),
+      studentDetails: {
+        fullName: fullName.trim(),
+        gender: gender || null,
+        address: address?.trim() || ''
+      },
+      parents: {
+        father: {
+          name: fatherName?.trim() || '',
+          occupation: fatherOccupation?.trim() || ''
+        },
+        mother: {
+          name: motherName?.trim() || '',
+          occupation: motherOccupation?.trim() || ''
+        }
+      },
+      contact: {
+        parentMobile,
+        studentMobile: studentMobile || '',
+        email: email?.trim() || ''
+      },
+      reference: reference?.trim() || '',
+      interestedStudentNote: interestedStudentNote?.trim() || '',
+      academics: {
+        ssc: {
+          board: sscBoard || null,
+          schoolName: sscSchoolName?.trim() || '',
+          percentageOrCGPA: sscPercentageOrCGPA ? Number(sscPercentageOrCGPA) : null,
+          mathsMarks: sscMathsMarks ? Number(sscMathsMarks) : null
+        },
+        eleventh: {
+          board: eleventhBoard || null,
+          collegeName: eleventhCollegeName?.trim() || '',
+          percentageOrCGPA: eleventhPercentageOrCGPA ? Number(eleventhPercentageOrCGPA) : null,
+          mathsMarks: eleventhMathsMarks ? Number(eleventhMathsMarks) : null
+        }
+      },
+      specialRequirement: specialRequirement?.trim() || '',
+      status: 'New'
+    };
+  }
 
   return await Inquiry.create(inquiryData);
 };
@@ -95,7 +149,7 @@ export const fetchInquiryById = async (inquiryId) => {
 
 export const updateInquiryStatusRecord = async (inquiryId, status) => {
   const validStatuses = ['New', 'In Progress', 'Follow Up Required', 'Converted', 'Closed'];
-  
+
   if (!status || !validStatuses.includes(status)) {
     throw new Error(`Status must be one of: ${validStatuses.join(', ')}`);
   }
@@ -195,7 +249,7 @@ export const deleteInquiryRecord = async (inquiryId) => {
 
 export const fetchInquiriesByStatus = async (status) => {
   const validStatuses = ['New', 'In Progress', 'Follow Up Required', 'Converted', 'Closed'];
-  
+
   if (!validStatuses.includes(status)) {
     throw new Error(`Status must be one of: ${validStatuses.join(', ')}`);
   }
