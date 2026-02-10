@@ -50,6 +50,11 @@ const studentSchema = new mongoose.Schema({
     admissionDate: Date,
     targetExamination: String,
   },
+  standard: {
+    type: String,
+    required: true,
+    enum: ['11', '12', 'Others']
+  },
   batch: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Batch"

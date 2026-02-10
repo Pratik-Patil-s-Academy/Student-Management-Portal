@@ -10,6 +10,7 @@ export const validateAdmissionData = (data) => {
   const studentMobile = data.contact?.studentMobile || data.studentMobile;
   const email = data.contact?.email || data.email;
   const gender = data.personalDetails?.gender || data.gender;
+  const standard = data.standard;
 
   if (!fullName || fullName.trim().length < 2) {
     throw new Error('Full name is required (min 2 characters)');
@@ -29,6 +30,14 @@ export const validateAdmissionData = (data) => {
 
   if (gender && !['Male', 'Female', 'Other'].includes(gender)) {
     throw new Error('Gender must be Male, Female, or Other');
+  }
+
+  if (!standard) {
+    throw new Error('Standard is required');
+  }
+
+  if (!['11', '12', 'Others'].includes(standard)) {
+    throw new Error('Standard must be 11, 12, or Others');
   }
 };
 
@@ -59,12 +68,17 @@ export const uploadStudentPhoto = async (file) => {
   }
 
   const fileUrl = getDataUrl(file);
-  const cloudinaryResponse = await cloudinary.uploader.upload(fileUrl.content, {
-    folder: 'student_photos',
-    resource_type: 'image'
-  });
-
-  return cloudinaryResponse.secure_url;
+  try {
+    const cloudinaryResponse = await cloudinary.uploader.upload(fileUrl.content, {
+      folder: 'student_photos',
+      resource_type: 'image'
+    });
+    console.log('Cloudinary Response:', cloudinaryResponse);
+    return cloudinaryResponse.secure_url;
+  } catch (error) {
+    console.error('Cloudinary Upload Error:', error);
+    throw new Error('Image upload failed');
+  }
 };
 
 export const createAdmissionRecord = async (data, photoUrl) => {
@@ -80,7 +94,7 @@ export const createAdmissionRecord = async (data, photoUrl) => {
         dob: data.personalDetails?.dob || null,
         gender: data.personalDetails?.gender || null,
         caste: data.personalDetails?.caste?.trim() || '',
-        photoUrl: data.personalDetails?.photoUrl || photoUrl || ''
+        photoUrl: photoUrl || data.personalDetails?.photoUrl || ''
       },
       parents: {
         father: {
@@ -116,6 +130,7 @@ export const createAdmissionRecord = async (data, photoUrl) => {
         admissionDate: data.admission?.admissionDate || null,
         targetExamination: data.admission?.targetExamination?.trim() || ''
       },
+      standard: data.standard,
       batch: data.batch || null,
       rollno: data.rollno ? Number(data.rollno) : null,
       status: data.status || 'Pending'
@@ -128,7 +143,7 @@ export const createAdmissionRecord = async (data, photoUrl) => {
       parentMobile, studentMobile, email,
       sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
       hscBoard, hscCollegeName, hscPercentageOrCGPA, hscMathsMarks,
-      reference, admissionDate, targetExamination, batch, rollno
+      reference, admissionDate, targetExamination, standard, batch, rollno
     } = data;
 
     admissionData = {
@@ -174,6 +189,7 @@ export const createAdmissionRecord = async (data, photoUrl) => {
         admissionDate: admissionDate || null,
         targetExamination: targetExamination?.trim() || ''
       },
+      standard,
       batch: batch || null,
       rollno: rollno ? Number(rollno) : null,
       status: 'Pending'
@@ -216,6 +232,7 @@ export const approveAdmission = async (admissionId) => {
     contact: admission.contact,
     academics: admission.academics,
     admission: admission.admission,
+    standard: admission.standard,
     batch: admission.batch,
     rollno: admission.rollno,
     status: 'Admitted'
