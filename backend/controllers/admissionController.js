@@ -5,12 +5,16 @@ import TryCatch from '../utils/TryCatch.js';
 import * as admissionService from '../services/admissionService.js';
 
 export const createAdmission = TryCatch(async (req, res) => {
+  console.log('Create Admission Request Body:', req.body);
+  console.log('Create Admission File:', req.file);
+
   admissionService.validateAdmissionData(req.body);
-  
+
   await admissionService.checkRollNumberAvailability(req.body.rollno);
-  
+
   const photoUrl = await admissionService.uploadStudentPhoto(req.file);
-  
+  console.log('Uploaded Photo URL:', photoUrl);
+
   const admission = await admissionService.createAdmissionRecord(req.body, photoUrl);
 
   res.status(201).json({
@@ -44,8 +48,8 @@ export const handleAdmissionDecision = TryCatch(async (req, res) => {
   const { action } = req.body;
 
   if (!action || !['approve', 'reject'].includes(action)) {
-    return res.status(400).json({ 
-      message: 'Action must be either "approve" or "reject"' 
+    return res.status(400).json({
+      message: 'Action must be either "approve" or "reject"'
     });
   }
 

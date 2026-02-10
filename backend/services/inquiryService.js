@@ -1,12 +1,12 @@
 import { Inquiry } from '../models/inquiryModel.js';
 
 export const validateInquiryData = (data) => {
-  // Handle both nested and flat structures
   const fullName = data.studentDetails?.fullName || data.fullName;
   const parentMobile = data.contact?.parentMobile || data.parentMobile;
   const studentMobile = data.contact?.studentMobile || data.studentMobile;
   const email = data.contact?.email || data.email;
   const gender = data.studentDetails?.gender || data.gender;
+  const standard = data.standard;
 
   if (!fullName || fullName.trim().length < 2) {
     throw new Error('Full name is required (min 2 characters)');
@@ -27,13 +27,20 @@ export const validateInquiryData = (data) => {
   if (gender && !['Male', 'Female', 'Other'].includes(gender)) {
     throw new Error('Gender must be Male, Female, or Other');
   }
+
+  if (!standard) {
+    throw new Error('Standard is required');
+  }
+
+  if (!['11', '12', 'Others'].includes(standard)) {
+    throw new Error('Standard must be 11, 12, or Others');
+  }
 };
 
 export const createInquiryRecord = async (data) => {
-  // Handle both nested and flat structures
   let inquiryData;
 
-  // Check if data is already in nested format (from frontend)
+  // Check if data is already in nested format
   if (data.studentDetails || data.parents || data.academics || data.contact) {
     inquiryData = {
       inquiryDate: data.inquiryDate || Date.now(),
@@ -59,6 +66,7 @@ export const createInquiryRecord = async (data) => {
       },
       reference: data.reference?.trim() || '',
       interestedStudentNote: data.interestedStudentNote?.trim() || '',
+      standard: data.standard,
       academics: {
         ssc: {
           board: data.academics?.ssc?.board || null,
@@ -77,17 +85,19 @@ export const createInquiryRecord = async (data) => {
       status: data.status || 'New'
     };
   } else {
-    // Handle flat structure (backward compatibility)
+    // Handle flat structure
     const {
-      fullName, gender, address, fatherName, fatherOccupation,
-      motherName, motherOccupation, parentMobile, studentMobile, email,
-      reference, interestedStudentNote, sscBoard, sscSchoolName,
-      sscPercentageOrCGPA, sscMathsMarks, eleventhBoard, eleventhCollegeName,
-      eleventhPercentageOrCGPA, eleventhMathsMarks, specialRequirement, inquiryDate
+      fullName, gender, address,
+      fatherName, fatherOccupation, motherName, motherOccupation,
+      parentMobile, studentMobile, email,
+      reference, interestedStudentNote, standard,
+      sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
+      eleventhBoard, eleventhCollegeName, eleventhPercentageOrCGPA, eleventhMathsMarks,
+      specialRequirement, status
     } = data;
 
     inquiryData = {
-      inquiryDate: inquiryDate || Date.now(),
+      inquiryDate: data.inquiryDate || Date.now(),
       studentDetails: {
         fullName: fullName.trim(),
         gender: gender || null,
@@ -110,6 +120,7 @@ export const createInquiryRecord = async (data) => {
       },
       reference: reference?.trim() || '',
       interestedStudentNote: interestedStudentNote?.trim() || '',
+      standard,
       academics: {
         ssc: {
           board: sscBoard || null,
@@ -125,7 +136,7 @@ export const createInquiryRecord = async (data) => {
         }
       },
       specialRequirement: specialRequirement?.trim() || '',
-      status: 'New'
+      status: status || 'New'
     };
   }
 
@@ -137,65 +148,28 @@ export const fetchAllInquiries = async (status) => {
   return await Inquiry.find(filter).sort({ createdAt: -1 });
 };
 
-export const fetchInquiryById = async (inquiryId) => {
-  const inquiry = await Inquiry.findById(inquiryId);
-
+export const fetchInquiryById = async (id) => {
+  const inquiry = await Inquiry.findById(id);
   if (!inquiry) {
     throw new Error('Inquiry not found');
   }
-
   return inquiry;
-};
-
-export const updateInquiryStatusRecord = async (inquiryId, status) => {
-  const validStatuses = ['New', 'In Progress', 'Follow Up Required', 'Converted', 'Closed'];
-
-  if (!status || !validStatuses.includes(status)) {
-    throw new Error(`Status must be one of: ${validStatuses.join(', ')}`);
-  }
-
-  const inquiry = await Inquiry.findByIdAndUpdate(
-    inquiryId,
-    { status },
-    { new: true }
-  );
-
-  if (!inquiry) {
-    throw new Error('Inquiry not found');
-  }
-
-  return inquiry;
-};
-
-export const validateInquiryUpdateData = (data) => {
-  const { parentMobile, studentMobile, email } = data;
-
-  if (parentMobile && !/^[0-9]{10}$/.test(parentMobile)) {
-    throw new Error('Valid 10-digit parent mobile number is required');
-  }
-
-  if (studentMobile && !/^[0-9]{10}$/.test(studentMobile)) {
-    throw new Error('Student mobile must be 10 digits');
-  }
-
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    throw new Error('Valid email address is required');
-  }
 };
 
 export const updateInquiryRecord = async (inquiryId, updateData) => {
   const inquiry = await Inquiry.findById(inquiryId);
-
   if (!inquiry) {
     throw new Error('Inquiry not found');
   }
 
   const {
-    fullName, gender, address, fatherName, fatherOccupation,
-    motherName, motherOccupation, parentMobile, studentMobile, email,
-    reference, interestedStudentNote, sscBoard, sscSchoolName,
-    sscPercentageOrCGPA, sscMathsMarks, eleventhBoard, eleventhCollegeName,
-    eleventhPercentageOrCGPA, eleventhMathsMarks, specialRequirement, status
+    fullName, gender, address,
+    fatherName, fatherOccupation, motherName, motherOccupation,
+    parentMobile, studentMobile, email,
+    reference, interestedStudentNote, standard,
+    sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
+    eleventhBoard, eleventhCollegeName, eleventhPercentageOrCGPA, eleventhMathsMarks,
+    specialRequirement, status
   } = updateData;
 
   if (fullName) inquiry.studentDetails.fullName = fullName.trim();
@@ -213,7 +187,7 @@ export const updateInquiryRecord = async (inquiryId, updateData) => {
 
   if (reference !== undefined) inquiry.reference = reference.trim();
   if (interestedStudentNote !== undefined) inquiry.interestedStudentNote = interestedStudentNote.trim();
-  if (specialRequirement !== undefined) inquiry.specialRequirement = specialRequirement.trim();
+  if (standard) inquiry.standard = standard;
 
   if (sscBoard !== undefined) inquiry.academics.ssc.board = sscBoard;
   if (sscSchoolName !== undefined) inquiry.academics.ssc.schoolName = sscSchoolName.trim();
@@ -225,13 +199,8 @@ export const updateInquiryRecord = async (inquiryId, updateData) => {
   if (eleventhPercentageOrCGPA !== undefined) inquiry.academics.eleventh.percentageOrCGPA = Number(eleventhPercentageOrCGPA);
   if (eleventhMathsMarks !== undefined) inquiry.academics.eleventh.mathsMarks = Number(eleventhMathsMarks);
 
-  if (status) {
-    const validStatuses = ['New', 'In Progress', 'Follow Up Required', 'Converted', 'Closed'];
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Status must be one of: ${validStatuses.join(', ')}`);
-    }
-    inquiry.status = status;
-  }
+  if (specialRequirement !== undefined) inquiry.specialRequirement = specialRequirement.trim();
+  if (status) inquiry.status = status;
 
   await inquiry.save();
   return inquiry;
@@ -239,22 +208,29 @@ export const updateInquiryRecord = async (inquiryId, updateData) => {
 
 export const deleteInquiryRecord = async (inquiryId) => {
   const inquiry = await Inquiry.findById(inquiryId);
+  if (!inquiry) {
+    throw new Error('Inquiry not found');
+  }
+  await Inquiry.findByIdAndDelete(inquiryId);
+};
+
+export const updateInquiryStatusRecord = async (inquiryId, status) => {
+  const validStatuses = ["New", "In Progress", "Follow Up Required", "Converted", "Closed"];
+  if (!status || !validStatuses.includes(status)) {
+    throw new Error(`Status must be one of: ${validStatuses.join(', ')}`);
+  }
+
+  const inquiry = await Inquiry.findByIdAndUpdate(
+    inquiryId,
+    { status },
+    { new: true }
+  );
 
   if (!inquiry) {
     throw new Error('Inquiry not found');
   }
 
-  await Inquiry.findByIdAndDelete(inquiryId);
-};
-
-export const fetchInquiriesByStatus = async (status) => {
-  const validStatuses = ['New', 'In Progress', 'Follow Up Required', 'Converted', 'Closed'];
-
-  if (!validStatuses.includes(status)) {
-    throw new Error(`Status must be one of: ${validStatuses.join(', ')}`);
-  }
-
-  return await Inquiry.find({ status }).sort({ createdAt: -1 });
+  return inquiry;
 };
 
 export const calculateInquiryStats = async () => {
@@ -267,15 +243,14 @@ export const calculateInquiryStats = async () => {
     }
   ]);
 
-  const totalInquiries = await Inquiry.countDocuments();
-
   const formattedStats = {
-    total: totalInquiries,
+    total: 0,
     byStatus: {}
   };
 
   stats.forEach(stat => {
     formattedStats.byStatus[stat._id] = stat.count;
+    formattedStats.total += stat.count;
   });
 
   return formattedStats;

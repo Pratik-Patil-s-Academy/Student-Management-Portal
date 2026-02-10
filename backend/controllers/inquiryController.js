@@ -33,19 +33,7 @@ export const getInquiryById = TryCatch(async (req, res) => {
   });
 });
 
-export const updateInquiryStatus = TryCatch(async (req, res) => {
-  const inquiry = await inquiryService.updateInquiryStatusRecord(req.params.id, req.body.status);
-
-  res.status(200).json({
-    success: true,
-    message: 'Inquiry status updated successfully',
-    inquiry
-  });
-});
-
 export const updateInquiry = TryCatch(async (req, res) => {
-  inquiryService.validateInquiryUpdateData(req.body);
-  
   const inquiry = await inquiryService.updateInquiryRecord(req.params.id, req.body);
 
   res.status(200).json({
@@ -61,6 +49,16 @@ export const deleteInquiry = TryCatch(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Inquiry deleted successfully'
+  });
+});
+
+export const updateInquiryStatus = TryCatch(async (req, res) => {
+  const inquiry = await inquiryService.updateInquiryStatusRecord(req.params.id, req.body.status);
+
+  res.status(200).json({
+    success: true,
+    message: 'Inquiry status updated successfully',
+    inquiry
   });
 });
 
