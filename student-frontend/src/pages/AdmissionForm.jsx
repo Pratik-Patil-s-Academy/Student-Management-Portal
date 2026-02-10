@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import axios from "axios";
 import Navbar from "@/components/Navbar.jsx";
 import Footer from "@/components/Footer.jsx";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import API_BASE_URL from "@/config/api";
 import { Loader2 } from "lucide-react";
+
+const MAX_FILE_SIZE = 1000000; // 1MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const admissionSchema = z.object({
   fullName: z.string().trim().min(1, "Full name is required").max(100),
@@ -44,8 +48,27 @@ const admissionSchema = z.object({
   reference: z.string().max(200).optional(),
   admissionDate: z.string().optional(),
   targetExamination: z.string().max(200).optional(),
-  rollno: z.coerce.number().optional(),
-  photo: z.instanceof(FileList).optional(),
+  rollno: z.union([
+    z.string().length(0),
+    z.coerce.number().positive("Roll number must be positive")
+  ]).optional(),
+  standard: z.enum(["11", "12", "Others"], {
+    required_error: "Standard is required",
+  }),
+  photo: z
+    .instanceof(FileList)
+    .optional()
+    .refine(
+      (files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE,
+      `Max file size is 1MB.`
+    )
+    .refine(
+      (files) =>
+        !files ||
+        files.length === 0 ||
+        ACCEPTED_IMAGE_TYPES.includes(files[0].type),
+      "Only .jpg, .jpeg, .png and .webp formats are supported."
+    ),
 });
 
 function AdmissionForm() {
@@ -56,10 +79,79 @@ function AdmissionForm() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(admissionSchema),
   });
+
+  const photoFile = watch("photo");
+  const [photoPreview, setPhotoPreview] = useState(null);
+
+  useEffect(() => {
+    if (photoFile && photoFile.length > 0) {
+      const file = photoFile[0];
+
+      // Validate file size immediately
+      const MAX_FILE_SIZE = 1000000; // 1MB
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error("Max file size is 1MB.");
+        // Scroll to photo field
+        const photoField = document.querySelector('[data-field="photo"]');
+        if (photoField) {
+          photoField.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        setPhotoPreview(null);
+        return;
+      }
+
+      // Validate file type
+      const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast.error("Only .jpg, .jpeg, .png and .webp formats are supported.");
+        const photoField = document.querySelector('[data-field="photo"]');
+        if (photoField) {
+          photoField.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        setPhotoPreview(null);
+        return;
+      }
+
+      const url = URL.createObjectURL(file);
+      setPhotoPreview(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPhotoPreview(null);
+    }
+  }, [photoFile]);
+
+  // Auto-scroll to first error field
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      const firstErrorField = Object.keys(errors)[0];
+
+      // Find element by name attribute or data-field attribute
+      const element =
+        document.querySelector(`[name="${firstErrorField}"]`) ||
+        document.querySelector(`[data-field="${firstErrorField}"]`);
+
+      if (element) {
+        // Scroll to the field
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Focus after a short delay to ensure scroll completes
+        setTimeout(() => {
+          if (element.focus) {
+            element.focus();
+          } else {
+            // For Select components, try to focus the trigger button
+            const trigger = element.querySelector('button');
+            if (trigger) trigger.focus();
+          }
+        }, 300);
+      }
+    }
+  }, [errors]);
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -107,19 +199,24 @@ function AdmissionForm() {
         formData.append("targetExamination", data.targetExamination);
       if (data.rollno !== undefined)
         formData.append("rollno", String(data.rollno));
+      formData.append("standard", data.standard);
       if (data.photo && data.photo.length > 0)
         formData.append("file", data.photo[0]);
 
-      await fetch(`${API_BASE_URL}/api/admissions/create`, {
-        method: "POST",
-        body: formData,
+      await axios.post(`${API_BASE_URL}/api/admissions/create`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
       toast.success("Admission application submitted successfully!");
       navigate("/");
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to submit admission",
-      );
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to submit admission";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -181,6 +278,24 @@ function AdmissionForm() {
                     <Label>Caste</Label>
                     <Input {...register("caste")} placeholder="Caste" />
                   </div>
+                  <div className={fieldClass}>
+                    <Label>Standard *</Label>
+                    <Select onValueChange={(v) => setValue("standard", v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select standard" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="11">11</SelectItem>
+                        <SelectItem value="12">12</SelectItem>
+                        <SelectItem value="Others">Others</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.standard && (
+                      <p className="text-xs text-destructive">
+                        {errors.standard.message}
+                      </p>
+                    )}
+                  </div>
                   <div className={`${fieldClass} sm:col-span-2`}>
                     <Label>Address</Label>
                     <Input
@@ -188,13 +303,55 @@ function AdmissionForm() {
                       placeholder="Full address"
                     />
                   </div>
-                  <div className={fieldClass}>
-                    <Label>Photo</Label>
-                    <Input
-                      {...register("photo")}
-                      type="file"
-                      accept="image/*"
-                    />
+                  <div className={fieldClass} data-field="photo">
+                    <Label>Photo (Max 1MB)</Label>
+                    <div className="flex items-center gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('photo-upload').click()}
+                        className="w-full"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="mr-2"
+                        >
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="17 8 12 3 7 8" />
+                          <line x1="12" x2="12" y1="3" y2="15" />
+                        </svg>
+                        Choose Photo
+                      </Button>
+                      <input
+                        id="photo-upload"
+                        {...register("photo")}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                      />
+                    </div>
+                    {errors.photo && (
+                      <p className="text-xs text-destructive">
+                        {errors.photo.message}
+                      </p>
+                    )}
+                    {photoPreview && (
+                      <div className="mt-2">
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          className="h-32 w-32 rounded-md border border-border object-cover"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </section>
@@ -398,8 +555,14 @@ function AdmissionForm() {
                     <Input
                       {...register("rollno")}
                       type="number"
+                      min="1"
                       placeholder="Roll number (if assigned)"
                     />
+                    {errors.rollno && (
+                      <p className="text-xs text-destructive">
+                        {errors.rollno.message}
+                      </p>
+                    )}
                   </div>
                 </div>
               </section>

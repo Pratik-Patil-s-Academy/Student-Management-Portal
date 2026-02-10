@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar.jsx";
 import Hero from "@/components/Hero.jsx";
 import CTACards from "@/components/CTACards.jsx";
 import Achievements from "@/components/Achievements.jsx";
+import OurToppers from "@/components/OurToppers.jsx";
 import Courses from "@/components/Courses.jsx";
 import Methodology from "@/components/Methodology.jsx";
 import BatchPrograms from "@/components/BatchPrograms.jsx";
@@ -14,6 +15,7 @@ function Index() {
       <Hero />
       <CTACards />
       <Achievements />
+      <OurToppers />
       <Courses />
       <Methodology />
       <BatchPrograms />

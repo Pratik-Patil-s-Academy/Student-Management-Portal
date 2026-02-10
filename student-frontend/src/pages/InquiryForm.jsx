@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import axios from "axios";
 import Navbar from "@/components/Navbar.jsx";
 import Footer from "@/components/Footer.jsx";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,9 @@ const inquirySchema = z.object({
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   reference: z.string().max(200).optional(),
   interestedStudentNote: z.string().max(1000).optional(),
+  standard: z.enum(["11", "12", "Others"], {
+    required_error: "Standard is required",
+  }),
   sscBoard: z.enum(["State Board", "CBSE", "ICSE"]).optional(),
   sscSchoolName: z.string().max(200).optional(),
   sscPercentageOrCGPA: z.coerce.number().min(0).max(100).optional(),
@@ -58,6 +62,34 @@ function InquiryForm() {
     resolver: zodResolver(inquirySchema),
   });
 
+  // Auto-scroll to first error field
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      const firstErrorField = Object.keys(errors)[0];
+
+      // Find element by name attribute or data-field attribute
+      const element =
+        document.querySelector(`[name="${firstErrorField}"]`) ||
+        document.querySelector(`[data-field="${firstErrorField}"]`);
+
+      if (element) {
+        // Scroll to the field
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Focus after a short delay to ensure scroll completes
+        setTimeout(() => {
+          if (element.focus) {
+            element.focus();
+          } else {
+            // For Select components, try to focus the trigger button
+            const trigger = element.querySelector('button');
+            if (trigger) trigger.focus();
+          }
+        }, 300);
+      }
+    }
+  }, [errors]);
+
   const onSubmit = async (data) => {
     setLoading(true);
     try {
@@ -78,6 +110,7 @@ function InquiryForm() {
         },
         reference: data.reference,
         interestedStudentNote: data.interestedStudentNote,
+        standard: data.standard,
         academics: {
           ssc: {
             board: data.sscBoard,
@@ -95,17 +128,16 @@ function InquiryForm() {
         specialRequirement: data.specialRequirement,
       };
 
-      await fetch(`${API_BASE_URL}/api/inquiries/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      await axios.post(`${API_BASE_URL}/api/inquiries/create`, payload);
       toast.success("Enquiry submitted successfully!");
       navigate("/");
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to submit enquiry",
-      );
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Failed to submit enquiry";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -146,7 +178,7 @@ function InquiryForm() {
                       </p>
                     )}
                   </div>
-                  <div className={fieldClass}>
+                  <div className={fieldClass} data-field="gender">
                     <Label>Gender</Label>
                     <Select onValueChange={(v) => setValue("gender", v)}>
                       <SelectTrigger>
@@ -158,6 +190,24 @@ function InquiryForm() {
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className={fieldClass} data-field="standard">
+                    <Label>Standard *</Label>
+                    <Select onValueChange={(v) => setValue("standard", v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select standard" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="11">11</SelectItem>
+                        <SelectItem value="12">12</SelectItem>
+                        <SelectItem value="Others">Others</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.standard && (
+                      <p className="text-xs text-destructive">
+                        {errors.standard.message}
+                      </p>
+                    )}
                   </div>
                   <div className={`${fieldClass} sm:col-span-2`}>
                     <Label>Address</Label>
@@ -261,7 +311,7 @@ function InquiryForm() {
                   SSC Details
                 </h3>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className={fieldClass}>
+                  <div className={fieldClass} data-field="sscBoard">
                     <Label>Board</Label>
                     <Select onValueChange={(v) => setValue("sscBoard", v)}>
                       <SelectTrigger>
@@ -307,7 +357,7 @@ function InquiryForm() {
                   11th Details
                 </h3>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className={fieldClass}>
+                  <div className={fieldClass} data-field="eleventhBoard">
                     <Label>Board</Label>
                     <Select onValueChange={(v) => setValue("eleventhBoard", v)}>
                       <SelectTrigger>
