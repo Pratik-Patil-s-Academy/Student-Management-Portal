@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+
 import { ArrowRight } from "lucide-react";
 import heroBg from "@/assets/hero-bg.png";
+import CTACards from "./CTACards";
 
 const courseTags = [
   "JEE Mains",
@@ -33,7 +35,7 @@ function Hero() {
         </p>
 
         {/* Course tags */}
-        <div className="mb-10 flex flex-wrap justify-center gap-2">
+        <div className="mb-1 flex flex-wrap justify-center gap-2">
           {courseTags.map((tag) => (
             <span
               key={tag}
@@ -44,17 +46,9 @@ function Hero() {
           ))}
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button asChild size="lg" className="gap-2 shadow-lg">
-            <Link to="/enquiry">
-              Make an Enquiry <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="lg" className="gap-2 bg-background/50 backdrop-blur-sm">
-            <Link to="/admission">
-              Apply for Admission <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+        {/* CTA Cards Section */}
+        <div className="mt-2 flex justify-center">
+          <CTACards />
         </div>
       </div>
     </section>

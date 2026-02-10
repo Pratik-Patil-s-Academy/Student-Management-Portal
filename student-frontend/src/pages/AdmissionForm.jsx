@@ -22,7 +22,12 @@ import API_BASE_URL from "@/config/api";
 import { Loader2 } from "lucide-react";
 
 const MAX_FILE_SIZE = 1000000; // 1MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
 
 const admissionSchema = z.object({
   fullName: z.string().trim().min(1, "Full name is required").max(100),
@@ -48,10 +53,6 @@ const admissionSchema = z.object({
   reference: z.string().max(200).optional(),
   admissionDate: z.string().optional(),
   targetExamination: z.string().max(200).optional(),
-  rollno: z.union([
-    z.string().length(0),
-    z.coerce.number().positive("Roll number must be positive")
-  ]).optional(),
   standard: z.enum(["11", "12", "Others"], {
     required_error: "Standard is required",
   }),
@@ -60,14 +61,14 @@ const admissionSchema = z.object({
     .optional()
     .refine(
       (files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE,
-      `Max file size is 1MB.`
+      `Max file size is 1MB.`,
     )
     .refine(
       (files) =>
         !files ||
         files.length === 0 ||
         ACCEPTED_IMAGE_TYPES.includes(files[0].type),
-      "Only .jpg, .jpeg, .png and .webp formats are supported."
+      "Only .jpg, .jpeg, .png and .webp formats are supported.",
     ),
 });
 
@@ -106,7 +107,12 @@ function AdmissionForm() {
       }
 
       // Validate file type
-      const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      const ACCEPTED_IMAGE_TYPES = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+      ];
       if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
         toast.error("Only .jpg, .jpeg, .png and .webp formats are supported.");
         const photoField = document.querySelector('[data-field="photo"]');
@@ -145,7 +151,7 @@ function AdmissionForm() {
             element.focus();
           } else {
             // For Select components, try to focus the trigger button
-            const trigger = element.querySelector('button');
+            const trigger = element.querySelector("button");
             if (trigger) trigger.focus();
           }
         }, 300);
@@ -197,8 +203,6 @@ function AdmissionForm() {
         formData.append("admissionDate", data.admissionDate);
       if (data.targetExamination)
         formData.append("targetExamination", data.targetExamination);
-      if (data.rollno !== undefined)
-        formData.append("rollno", String(data.rollno));
       formData.append("standard", data.standard);
       if (data.photo && data.photo.length > 0)
         formData.append("file", data.photo[0]);
@@ -309,7 +313,9 @@ function AdmissionForm() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => document.getElementById('photo-upload').click()}
+                        onClick={() =>
+                          document.getElementById("photo-upload").click()
+                        }
                         className="w-full"
                       >
                         <svg
@@ -461,7 +467,7 @@ function AdmissionForm() {
                     />
                   </div>
                   <div className={fieldClass}>
-                    <Label>Percentage / CGPA</Label>
+                    <Label>Percentage</Label>
                     <Input
                       {...register("sscPercentageOrCGPA")}
                       type="number"
@@ -507,7 +513,7 @@ function AdmissionForm() {
                     />
                   </div>
                   <div className={fieldClass}>
-                    <Label>Percentage / CGPA</Label>
+                    <Label>Percentage</Label>
                     <Input
                       {...register("hscPercentageOrCGPA")}
                       type="number"
@@ -549,20 +555,6 @@ function AdmissionForm() {
                       {...register("targetExamination")}
                       placeholder="e.g. JEE Mains 2026"
                     />
-                  </div>
-                  <div className={fieldClass}>
-                    <Label>Roll No</Label>
-                    <Input
-                      {...register("rollno")}
-                      type="number"
-                      min="1"
-                      placeholder="Roll number (if assigned)"
-                    />
-                    {errors.rollno && (
-                      <p className="text-xs text-destructive">
-                        {errors.rollno.message}
-                      </p>
-                    )}
                   </div>
                 </div>
               </section>

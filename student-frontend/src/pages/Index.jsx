@@ -13,7 +13,6 @@ function Index() {
     <div className="min-h-screen">
       <Navbar />
       <Hero />
-      <CTACards />
       <Achievements />
       <OurToppers />
       <Courses />
