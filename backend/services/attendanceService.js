@@ -16,11 +16,11 @@ export const validateAttendanceData = async (batchId, date, students) => {
     throw new Error('At least one student attendance record is required');
   }
 
-  const existingAttendance = await Attendance.findOne({ 
-    batchId, 
-    date: new Date(date) 
+  const existingAttendance = await Attendance.findOne({
+    batchId,
+    date: new Date(date)
   });
-  
+
   if (existingAttendance) {
     throw new Error('Attendance already marked for this batch on this date');
   }
@@ -30,7 +30,7 @@ export const validateAttendanceData = async (batchId, date, students) => {
 
 export const validateStudentsInBatch = async (batch, students) => {
   const studentIds = students.map(s => typeof s === 'string' ? s : s.studentId);
-  
+
   const validStudents = await Student.find({ _id: { $in: studentIds } });
   if (validStudents.length !== studentIds.length) {
     throw new Error('One or more student IDs are invalid');
@@ -38,7 +38,7 @@ export const validateStudentsInBatch = async (batch, students) => {
 
   const batchStudentIds = batch.students.map(s => s._id.toString());
   const invalidStudents = studentIds.filter(sid => !batchStudentIds.includes(sid.toString()));
-  
+
   if (invalidStudents.length > 0) {
     throw new Error(`Students with IDs ${invalidStudents.join(', ')} are not in this batch`);
   }
@@ -68,7 +68,7 @@ export const fetchAttendanceByBatch = async (batchId, startDate, endDate) => {
   }
 
   const filter = { batchId };
-  
+
   if (startDate || endDate) {
     filter.date = {};
     if (startDate) filter.date.$gte = new Date(startDate);
@@ -88,7 +88,7 @@ export const fetchAttendanceByStudent = async (studentId, startDate, endDate) =>
   }
 
   const filter = { 'students.studentId': studentId };
-  
+
   if (startDate || endDate) {
     filter.date = {};
     if (startDate) filter.date.$gte = new Date(startDate);
@@ -116,12 +116,24 @@ export const fetchAttendanceByStudent = async (studentId, startDate, endDate) =>
 };
 
 export const fetchAttendanceByDate = async (date) => {
-  return await Attendance.find({ 
-    date: new Date(date) 
+  return await Attendance.find({
+    date: new Date(date)
   })
     .populate('batchId')
     .populate('students.studentId')
     .sort({ createdAt: -1 });
+};
+
+export const fetchAttendanceById = async (id) => {
+  const attendance = await Attendance.findById(id)
+    .populate('batchId')
+    .populate('students.studentId');
+
+  if (!attendance) {
+    throw new Error('Attendance record not found');
+  }
+
+  return attendance;
 };
 
 export const updateAttendanceRecord = async (id, students, subject) => {
@@ -132,7 +144,7 @@ export const updateAttendanceRecord = async (id, students, subject) => {
 
   if (students && Array.isArray(students)) {
     const studentIds = students.map(s => typeof s === 'string' ? s : s.studentId);
-    
+
     const validStudents = await Student.find({ _id: { $in: studentIds } });
     if (validStudents.length !== studentIds.length) {
       throw new Error('One or more student IDs are invalid');
@@ -141,7 +153,7 @@ export const updateAttendanceRecord = async (id, students, subject) => {
     const batch = await Batch.findById(attendance.batchId).populate('students');
     const batchStudentIds = batch.students.map(s => s._id.toString());
     const invalidStudents = studentIds.filter(sid => !batchStudentIds.includes(sid.toString()));
-    
+
     if (invalidStudents.length > 0) {
       throw new Error(`Students with IDs ${invalidStudents.join(', ')} are not in this batch`);
     }
@@ -177,7 +189,7 @@ export const calculateAttendanceStats = async (studentId, startDate, endDate) =>
   }
 
   const filter = { 'students.studentId': studentId };
-  
+
   if (startDate || endDate) {
     filter.date = {};
     if (startDate) filter.date.$gte = new Date(startDate);
@@ -203,8 +215,8 @@ export const calculateAttendanceStats = async (studentId, startDate, endDate) =>
   });
 
   const totalClasses = totalPresent + totalAbsent;
-  const attendancePercentage = totalClasses > 0 
-    ? ((totalPresent / totalClasses) * 100).toFixed(2) 
+  const attendancePercentage = totalClasses > 0
+    ? ((totalPresent / totalClasses) * 100).toFixed(2)
     : 0;
 
   return {
@@ -222,19 +234,19 @@ export const calculateBatchAttendanceStats = async (batchId, startDate, endDate)
   }
 
   const filter = { batchId };
-  
+
   if (startDate || endDate) {
     filter.date = {};
     if (startDate) filter.date.$gte = new Date(startDate);
     if (endDate) filter.date.$lte = new Date(endDate);
   }
-  
+
   const attendanceRecords = await Attendance.find(filter);
-  
+
   return batch.students.map(student => {
     let totalPresent = 0;
     let totalAbsent = 0;
-    
+
     attendanceRecords.forEach(record => {
       const studentRecord = record.students.find(
         s => s.studentId.toString() === student._id.toString()
@@ -247,10 +259,10 @@ export const calculateBatchAttendanceStats = async (batchId, startDate, endDate)
         }
       }
     });
-    
+
     const totalClasses = totalPresent + totalAbsent;
-    const attendancePercentage = totalClasses > 0 
-      ? ((totalPresent / totalClasses) * 100).toFixed(2) 
+    const attendancePercentage = totalClasses > 0
+      ? ((totalPresent / totalClasses) * 100).toFixed(2)
       : 0;
 
     return {

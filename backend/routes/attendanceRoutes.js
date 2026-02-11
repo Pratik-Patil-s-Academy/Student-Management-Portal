@@ -4,6 +4,7 @@ import {
   getAttendanceByBatch,
   getAttendanceByStudent,
   getAttendanceByDate,
+  getAttendanceById,
   updateAttendance,
   deleteAttendance,
   getAttendanceStats
@@ -224,6 +225,40 @@ router.get('/student/:studentId/stats', getAttendanceStats);
  *         description: Internal server error
  */
 router.get('/date/:date', getAttendanceByDate);
+
+/**
+ * @swagger
+ * /api/attendance/{id}:
+ *   get:
+ *     summary: Get attendance record by ID
+ *     tags: [Attendance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The attendance ID
+ *     responses:
+ *       200:
+ *         description: Attendance record
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 attendance:
+ *                   $ref: '#/components/schemas/Attendance'
+ *       404:
+ *         description: Attendance record not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:id', getAttendanceById);
 
 
 /**
