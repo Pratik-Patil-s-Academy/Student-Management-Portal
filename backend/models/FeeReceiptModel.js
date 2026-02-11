@@ -60,9 +60,9 @@ const feeReceiptSchema = new mongoose.Schema({
 
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+    ref: "Admin"
   }
 
 }, { timestamps: true });
 
-export default mongoose.model("FeeReceipt", feeReceiptSchema);
+export const FeeReceipt = mongoose.model("FeeReceipt", feeReceiptSchema);

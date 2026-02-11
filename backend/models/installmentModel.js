@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const installmentSchema = new mongoose.Schema({
   student: {
@@ -6,7 +6,7 @@ const installmentSchema = new mongoose.Schema({
     ref: 'Student',
     required: true
   },
-  installmentNumber: {
+  paymentNumber: {
     type: Number,
     required: true
   },
@@ -15,16 +15,23 @@ const installmentSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-
-
+  paymentDate: {
+    type: Date,
+    default: Date.now
+  },
+  status: {
+    type: String,
+    enum: ['Paid'],
+    default: 'Paid'
+  },
   paymentMode: {
     type: String,
-    enum: ['Cash', 'Online', 'UPI', 'Card', 'Bank Transfer']
+    enum: ['Cash', 'Online', 'UPI', 'Card', 'Bank Transfer'],
+    required: true
   },
   transactionId: {
     type: String
   },
- 
   remarks: {
     type: String
   }
@@ -44,4 +51,4 @@ installmentSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Installment', installmentSchema);
+export const Installment = mongoose.model('Installment', installmentSchema);
