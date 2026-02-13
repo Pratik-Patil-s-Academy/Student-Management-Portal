@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import { GraduationCap, HelpCircle, Trophy, TrendingUp, Users, Calendar, CheckCircle, ArrowRight, BookOpen, Star, Sparkles, Lightbulb, ClipboardList, BarChart, Target, Medal, ChevronLeft, ChevronRight } from "lucide-react";
+import { GraduationCap, HelpCircle, Trophy, TrendingUp, Users, Calendar, CheckCircle, ArrowRight, BookOpen, Star, Sparkles, Lightbulb, ClipboardList, BarChart, Target, Medal, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.jpeg";
 
 const LandingPage = () => {
     const [scrolled, setScrolled] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -28,34 +29,61 @@ const LandingPage = () => {
     return (
         <div className="min-h-screen bg-[var(--color-cream)] font-sans overflow-x-hidden selection:bg-[var(--color-dark-navy)] selection:text-white">
 
-            {/* 1. Navbar (Floating & Glass) */}
+            {/* 1. Navbar (Full Width & Sticky) */}
             <nav
-                className={`fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl z-50 rounded-full transition-all duration-500 ${scrolled ? "bg-[#2C3E50]/95 backdrop-blur-xl shadow-2xl py-3 border-[#2C3E50]" : "bg-[#2C3E50] py-4 border-transparent"} px-6 flex justify-between items-center text-white border border-white/10`}
+                className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? "bg-[#2C3E50]/95 backdrop-blur-xl shadow-2xl py-3 border-[#2C3E50]" : "bg-[#2C3E50] py-4 border-transparent"} px-6 flex justify-between items-center text-white border-b border-white/10`}
             >
-                <div className="text-xl font-bold flex items-center gap-3">
-                    <img src={logo} alt="Academy Logo" className="w-12 h-12 rounded-full shadow-lg object-cover" />
-                    <span className="tracking-tight font-extrabold">Pratik Patil's Academy</span>
+                <div className="text-lg md:text-xl font-bold flex items-center gap-2 md:gap-3">
+                    <img src={logo} alt="Academy Logo" className="w-10 h-10 md:w-12 md:h-12 rounded-full shadow-lg object-cover" />
+                    <span className="tracking-tight font-extrabold truncate max-w-[200px] md:max-w-none">Pratik Patil's Academy</span>
                 </div>
 
+                {/* Desktop Menu */}
                 <div className="hidden md:flex items-center gap-2">
                     <Link to="/enquiry" className="px-6 py-2 rounded-full hover:bg-white/10 transition-all font-medium flex items-center gap-2 text-sm uppercase tracking-wide">
-                        <HelpCircle className="w-4 h-4" /> Enquiry
+                        Enquiry
                     </Link>
                     <Link to="/admission" className="px-6 py-2 rounded-full bg-white text-[#2C3E50] font-bold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2 text-sm uppercase tracking-wide">
                         <GraduationCap className="w-4 h-4" /> Admission
                     </Link>
                 </div>
 
-                {/* Mobile Menu Button - Placeholder */}
-                <div className="md:hidden text-white">
-                    <Link to="/enquiry" className="p-2">
-                        <HelpCircle className="w-6 h-6" />
-                    </Link>
-                </div>
+                {/* Mobile Menu Button */}
+                <button
+                    className="md:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                >
+                    {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+
+                {/* Mobile Menu Overlay */}
+                {isMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="absolute top-full left-0 w-full bg-[#2C3E50] border-t border-white/10 p-6 flex flex-col gap-4 md:hidden shadow-2xl"
+                    >
+                        <Link
+                            to="/enquiry"
+                            className="px-6 py-3 rounded-xl hover:bg-white/10 transition-all font-semibold flex items-center gap-3 text-base uppercase tracking-wider"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <HelpCircle className="w-5 h-5" /> Enquiry
+                        </Link>
+                        <Link
+                            to="/admission"
+                            className="px-6 py-3 rounded-xl bg-white text-[#2C3E50] font-bold hover:bg-gray-100 transition-all shadow-lg flex items-center gap-3 text-base uppercase tracking-wider"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            <GraduationCap className="w-5 h-5" /> Admission
+                        </Link>
+                    </motion.div>
+                )}
             </nav>
 
             {/* 2. Hero Section */}
-            <header className="min-h-screen flex flex-col lg:flex-row items-center justify-center gap-8 px-6 pt-36 pb-20 bg-[var(--color-cream)] relative overflow-hidden">
+            <header className="min-h-screen flex flex-col lg:flex-row items-center justify-center gap-8 px-6 pt-24 md:pt-36 pb-20 bg-[var(--color-cream)] relative overflow-hidden">
                 {/* Animated Background blobs */}
                 <motion.div
                     animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
@@ -82,7 +110,7 @@ const LandingPage = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className="text-5xl md:text-7xl font-extrabold text-[#2C3E50] leading-tight flex flex-col gap-2"
+                        className="text-4xl md:text-7xl font-extrabold text-[#2C3E50] leading-tight flex flex-col gap-2"
                     >
                         <span>Shaping Future</span>
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2C3E50] to-blue-600">Leaders</span>
@@ -91,7 +119,7 @@ const LandingPage = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.4 }}
-                        className="text-xl text-gray-600 mt-6 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium"
+                        className="text-lg md:text-xl text-gray-600 mt-6 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium"
                     >
                         Premier Coaching for 11th & 12th Science. Unlock your potential with expert guidance and a proven track record.
                     </motion.p>
@@ -110,7 +138,7 @@ const LandingPage = () => {
                 </div>
 
                 {/* Right Content - Hero Cards (Original Styles, No Overlap) */}
-                <div className="lg:w-1/2 flex flex-col md:flex-row gap-8 items-center justify-center relative mt-12 lg:mt-0">
+                <div className="lg:w-1/2 flex flex-col md:flex-row gap-6 md:gap-8 items-center justify-center relative mt-10 lg:mt-0">
                     {/* Card 1: Enquiry Passport (White/Glass) */}
                     <motion.div
                         initial={{ x: 100, opacity: 0 }}
@@ -326,7 +354,7 @@ const LandingPage = () => {
                                 { name: "Kollo Ronlay", rank: "State 1st", score: "99.9%", quote: "Personal attention made the difference.", color: "bg-yellow-50" },
                                 { name: "Priya Patel", rank: "AIR 45 - JEE", score: "99.8%", quote: "Mock tests were very helpful.", color: "bg-purple-50" },
                             ].map((student, idx) => (
-                                <div key={`${i}-${idx}`} className="w-[350px] bg-white rounded-[2rem] p-6 shadow-lg border border-gray-100 flex flex-col items-center text-center relative hover:scale-105 transition-transform duration-300">
+                                <div key={`${i}-${idx}`} className="w-[280px] md:w-[350px] bg-white rounded-[2rem] p-6 shadow-lg border border-gray-100 flex flex-col items-center text-center relative hover:scale-105 transition-transform duration-300">
                                     {/* Photo Placeholder */}
                                     <div className={`w-32 h-32 rounded-3xl ${student.color} mb-6 flex items-center justify-center shadow-inner`}>
                                         <Users className="w-16 h-16 text-[#2C3E50]/40" />
@@ -396,7 +424,7 @@ const LandingPage = () => {
                                         className={`relative flex md:justify-between items-center mb-24 ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
                                     >
                                         {/* Node */}
-                                        <div className={`absolute left-6 md:left-1/2 -translate-x-1/2 flex items-center justify-center w-16 h-16 rounded-full border-4 border-[#2C3E50] z-10 transition-all duration-500 ${isInView ? "bg-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.6)] scale-110" : "bg-[#172554] shadow-none scale-100"}`}>
+                                        <div className={`absolute left-6 md:left-1/2 -translate-x-1/2 flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full border-4 border-[#2C3E50] z-10 transition-all duration-500 ${isInView ? "bg-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.6)] scale-110" : "bg-[#172554] shadow-none scale-100"}`}>
                                             <step.icon size={28} className="text-white" strokeWidth={1.5} />
                                         </div>
 
@@ -404,8 +432,8 @@ const LandingPage = () => {
                                         <div className="hidden md:block w-[45%]"></div>
 
                                         {/* Card */}
-                                        <div className={`w-[calc(100%-6rem)] md:w-[45%] ml-24 md:ml-0 group`}>
-                                            <div className="bg-white/5 backdrop-blur-md p-8 rounded-[2rem] border border-white/10 hover:bg-white/10 transition-all hover:border-white/20 hover:shadow-2xl">
+                                        <div className={`w-[calc(100%-4rem)] md:w-[45%] ml-16 md:ml-0 group`}>
+                                            <div className="bg-white/5 backdrop-blur-md p-6 md:p-8 rounded-[2rem] border border-white/10 hover:bg-white/10 transition-all hover:border-white/20 hover:shadow-2xl">
                                                 <h3 className="text-xl font-bold text-white mb-2 uppercase flex items-center gap-3">
                                                     <span className="text-cyan-400 text-2xl opacity-50 font-black">0{index + 1}</span>
                                                     {step.title}
@@ -449,7 +477,7 @@ const LandingPage = () => {
                                 transition={{ delay: index * 0.1 }}
                                 whileHover={{ y: -10 }}
                                 key={index}
-                                className="min-w-[320px] md:min-w-[380px] bg-white rounded-[2.5rem] p-8 flex flex-col border border-gray-100 shadow-xl snap-center hover:shadow-2xl transition-all group"
+                                className="min-w-[280px] md:min-w-[380px] bg-white rounded-[2.5rem] p-8 flex flex-col border border-gray-100 shadow-xl snap-center hover:shadow-2xl transition-all group"
                             >
                                 <div className="h-full flex flex-col">
                                     <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-8 text-[#2C3E50] group-hover:bg-[#2C3E50] group-hover:text-white transition-colors duration-300">
@@ -475,7 +503,7 @@ const LandingPage = () => {
             </section>
 
             {/* 7. Footer */}
-            <footer className="bg-[#172554] text-white rounded-t-[3rem] mt-0 pt-24 pb-12 px-6 relative overflow-hidden">
+            <footer className="bg-[#2C3E50] text-white rounded-t-[3rem] mt-0 pt-24 pb-12 px-6 relative overflow-hidden">
                 {/* Footer pattern */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500" />
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
