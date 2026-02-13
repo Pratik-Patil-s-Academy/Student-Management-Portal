@@ -222,7 +222,7 @@ const LandingPage = () => {
                             whileHover={{ y: -10, shadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.1 }}
-                            className="col-span-1 md:col-span-1 bg-[#d97706] text-white rounded-[2.5rem] p-8 shadow-xl flex flex-col justify-between h-[320px] relative overflow-hidden"
+                            className="col-span-1 md:col-span-1 bg-amber-400 text-white rounded-[2.5rem] p-8 shadow-xl flex flex-col justify-between h-[320px] relative overflow-hidden"
                         >
                             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
                             <div className="w-14 h-14 rounded-3xl bg-white/20 flex items-center justify-center backdrop-blur-sm shadow-inner">
@@ -235,14 +235,14 @@ const LandingPage = () => {
                             <p className="text-sm text-white/70 font-medium mt-auto">Consistently delivering results.</p>
                         </motion.div>
 
-                        {/* 50+ City Toppers - Red */}
+                        {/* 50+ City Toppers  */}
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             whileHover={{ y: -10, shadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.2 }}
-                            className="col-span-1 md:col-span-1 bg-[#ef4444] text-white rounded-[2.5rem] p-8 shadow-xl flex flex-col justify-between h-[320px] relative overflow-hidden"
+                            className="col-span-1 md:col-span-1 bg-emerald-600 text-white rounded-[2.5rem] p-8 shadow-xl flex flex-col justify-between h-[320px] relative overflow-hidden"
                         >
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
                             <div className="w-14 h-14 rounded-3xl bg-white/20 flex items-center justify-center backdrop-blur-sm shadow-inner relative z-10">
