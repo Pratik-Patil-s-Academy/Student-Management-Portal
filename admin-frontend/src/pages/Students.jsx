@@ -7,7 +7,7 @@ const Students = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // URL Params for persistence
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get('search') || '';
@@ -35,13 +35,13 @@ const Students = () => {
 
   const updateFilter = (key, value) => {
     setSearchParams(prev => {
-        const newParams = new URLSearchParams(prev);
-        if (value) {
-            newParams.set(key, value);
-        } else {
-            newParams.delete(key);
-        }
-        return newParams;
+      const newParams = new URLSearchParams(prev);
+      if (value) {
+        newParams.set(key, value);
+      } else {
+        newParams.delete(key);
+      }
+      return newParams;
     });
   };
 
@@ -98,49 +98,49 @@ const Students = () => {
             onChange={(e) => updateFilter('search', e.target.value)}
           />
         </div>
-        
+
         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-             <div className="relative">
-                <select
-                className="w-full md:w-40 appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
-                value={standardFilter}
-                onChange={(e) => updateFilter('standard', e.target.value)}
-                >
-                <option value="">All Standards</option>
-                <option value="11">11th</option>
-                <option value="12">12th</option>
-                <option value="Others">Others</option>
-                </select>
-                <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
+          <div className="relative">
+            <select
+              className="w-full md:w-40 appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
+              value={standardFilter}
+              onChange={(e) => updateFilter('standard', e.target.value)}
+            >
+              <option value="">All Standards</option>
+              <option value="11">11th</option>
+              <option value="12">12th</option>
+              <option value="Others">Others</option>
+            </select>
+            <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
 
-             <div className="relative">
-                <select
-                className="w-full md:w-40 appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
-                value={statusFilter}
-                onChange={(e) => updateFilter('status', e.target.value)}
-                >
-                <option value="">All Statuses</option>
-                <option value="Admitted">Admitted</option>
-                <option value="Not Admitted">Not Admitted</option>
-                <option value="Dropped">Dropped</option>
-                </select>
-                <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
+          <div className="relative">
+            <select
+              className="w-full md:w-40 appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
+              value={statusFilter}
+              onChange={(e) => updateFilter('status', e.target.value)}
+            >
+              <option value="">All Statuses</option>
+              <option value="Admitted">Admitted</option>
+              <option value="Not Admitted">Not Admitted</option>
+              <option value="Dropped">Dropped</option>
+            </select>
+            <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
 
-            <div className="relative">
-                <select
-                className="w-full md:w-40 appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
-                value={sortBy}
-                onChange={(e) => updateFilter('sort', e.target.value)}
-                >
-                <option value="date_desc">Date (Newest)</option>
-                <option value="date_asc">Date (Oldest)</option>
-                <option value="name_asc">Name (A-Z)</option>
-                <option value="name_desc">Name (Z-A)</option>
-                </select>
-                <FaSort className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
+          <div className="relative">
+            <select
+              className="w-full md:w-40 appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
+              value={sortBy}
+              onChange={(e) => updateFilter('sort', e.target.value)}
+            >
+              <option value="date_desc">Date (Newest)</option>
+              <option value="date_asc">Date (Oldest)</option>
+              <option value="name_asc">Name (A-Z)</option>
+              <option value="name_desc">Name (Z-A)</option>
+            </select>
+            <FaSort className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
         </div>
       </div>
 
@@ -155,7 +155,7 @@ const Students = () => {
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Student Name</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Mobile</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Standard</th>
-                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Batch</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Batch</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
               </tr>
@@ -168,37 +168,37 @@ const Students = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 flex items-center gap-2">
                     {student.personalDetails?.photoUrl ? (
-                        <img src={student.personalDetails.photoUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+                      <img src={student.personalDetails.photoUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
                     ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                            <FaUserGraduate />
-                        </div>
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                        <FaUserGraduate />
+                      </div>
                     )}
                     {student.personalDetails?.fullName || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {student.contact?.parentMobile || 'N/A'}
                   </td>
-                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#2C3E50]">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#2C3E50]">
                     {student.standard}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {student.batch ? (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-bold">{student.batch.name}</span>
+                    {student.batch && student.batch.name ? (
+                      <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-bold">{student.batch.name}</span>
                     ) : (
-                        <span className="text-gray-400 italic">Unassigned</span>
+                      <span className="px-2 py-1 bg-gray-100 text-gray-500 rounded text-xs font-medium italic">Unassigned</span>
                     )}
                   </td>
-                   <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm 
-                        ${student.status === 'Admitted' ? 'bg-green-100 text-green-800' : 
-                          student.status === 'Dropped' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
+                        ${student.status === 'Admitted' ? 'bg-green-100 text-green-800' :
+                        student.status === 'Dropped' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
                       {student.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link 
-                      to={`/students/${student._id}`} 
+                    <Link
+                      to={`/students/${student._id}`}
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold transition-all group-hover:gap-3"
                     >
                       <FaEye /> View
@@ -207,7 +207,7 @@ const Students = () => {
                 </tr>
               ))}
               {filteredStudents.length === 0 && (
-                 <tr>
+                <tr>
                   <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -224,49 +224,49 @@ const Students = () => {
 
         {/* Mobile Cards */}
         <div className="md:hidden space-y-4 p-4 bg-gray-50">
-             {filteredStudents.map((student) => (
-                <div key={student._id} className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 border border-gray-100">
-                     <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center gap-3">
-                           {student.personalDetails?.photoUrl ? (
-                                <img src={student.personalDetails.photoUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
-                            ) : (
-                                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                                    <FaUserGraduate />
-                                </div>
-                            )}
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900">{student.personalDetails?.fullName || 'N/A'}</h3>
-                                <p className="text-xs text-gray-500">Roll: {student.rollno || 'N/A'}</p>
-                            </div>
-                        </div>
-                        <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm 
-                            ${student.status === 'Admitted' ? 'bg-green-100 text-green-800' : 
-                              student.status === 'Dropped' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
-                            {student.status}
-                        </span>
-                     </div>
-                      <div className="space-y-2 text-sm text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg">
-                        <p><span className="font-semibold text-gray-800">Mobile:</span> {student.contact?.parentMobile || 'N/A'}</p>
-                        <p><span className="font-semibold text-gray-800">Standard:</span> <span className="text-[#2C3E50] font-bold">{student.standard}</span></p>
-                        <p><span className="font-semibold text-gray-800">Batch:</span> {student.batch ? <span className="text-purple-700 font-medium">{student.batch.name}</span> : 'Unassigned'}</p>
-                      </div>
-                       <Link 
-                        to={`/students/${student._id}`} 
-                        className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-semibold shadow-md"
-                      >
-                        <FaEye /> View Profile
-                      </Link>
-                </div>
-             ))}
-             {filteredStudents.length === 0 && (
-                <div className="text-center text-gray-500 py-12 bg-white rounded-xl">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
-                    <FaSearch className="text-3xl text-gray-400" />
+          {filteredStudents.map((student) => (
+            <div key={student._id} className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 border border-gray-100">
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center gap-3">
+                  {student.personalDetails?.photoUrl ? (
+                    <img src={student.personalDetails.photoUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                      <FaUserGraduate />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">{student.personalDetails?.fullName || 'N/A'}</h3>
+                    <p className="text-xs text-gray-500">Roll: {student.rollno || 'N/A'}</p>
                   </div>
-                  <p className="text-lg font-semibold">No students found</p>
                 </div>
-              )}
+                <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm 
+                            ${student.status === 'Admitted' ? 'bg-green-100 text-green-800' :
+                    student.status === 'Dropped' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
+                  {student.status}
+                </span>
+              </div>
+              <div className="space-y-2 text-sm text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg">
+                <p><span className="font-semibold text-gray-800">Mobile:</span> {student.contact?.parentMobile || 'N/A'}</p>
+                <p><span className="font-semibold text-gray-800">Standard:</span> <span className="text-[#2C3E50] font-bold">{student.standard}</span></p>
+                <p><span className="font-semibold text-gray-800">Batch:</span> {student.batch && student.batch.name ? <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-xs font-bold">{student.batch.name}</span> : <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs font-medium italic">Unassigned</span>}</p>
+              </div>
+              <Link
+                to={`/students/${student._id}`}
+                className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-semibold shadow-md"
+              >
+                <FaEye /> View Profile
+              </Link>
+            </div>
+          ))}
+          {filteredStudents.length === 0 && (
+            <div className="text-center text-gray-500 py-12 bg-white rounded-xl">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                <FaSearch className="text-3xl text-gray-400" />
+              </div>
+              <p className="text-lg font-semibold">No students found</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

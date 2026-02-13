@@ -14,10 +14,13 @@ import BatchDetail from './pages/BatchDetail';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 
+import { Toaster } from 'react-hot-toast';
+
 const App = () => {
   return (
     <Router>
       <AuthProvider>
+        <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route element={<PrivateRoute />}>

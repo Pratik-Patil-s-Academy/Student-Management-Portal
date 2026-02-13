@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
+import logo from '../assets/logo.jpeg';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -27,21 +30,21 @@ const Login = () => {
     <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F5F1E8' }}>
       <div className="w-full max-w-md p-8 rounded-xl shadow-2xl transform transition-all duration-300 hover:shadow-3xl" style={{ backgroundColor: '#FFFFFF' }}>
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#2C3E50] to-[#3d5266] rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
-            <span className="text-white text-3xl font-bold">A</span>
+          <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg overflow-hidden" style={{ backgroundColor: '#2C3E50' }}>
+            <img src={logo} alt="Logo" className="w-full h-full object-cover" />
           </div>
           <h2 className="text-3xl font-bold" style={{ color: '#2C3E50' }}>
             Admin Portal
           </h2>
           <p className="text-gray-500 text-sm mt-2">Sign in to continue</p>
         </div>
-        
+
         {error && (
           <div className="mb-6 p-4 text-red-700 bg-red-50 rounded-lg border-l-4 border-red-500 animate-shake">
             <p className="font-medium text-sm">{error}</p>
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="email">
@@ -59,24 +62,38 @@ const Login = () => {
               placeholder="admin@example.com"
             />
           </div>
-          
+
           <div>
             <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="password">
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              className="w-full px-4 py-3 border-2 rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent hover:border-gray-400"
-              style={{ borderColor: '#E0E0E0' }}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
-              placeholder="Enter your password"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                className="w-full px-4 py-3 pr-12 border-2 rounded-lg shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent hover:border-gray-400"
+                style={{ borderColor: '#E0E0E0' }}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+                placeholder="Enter your password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none transition-colors duration-200"
+                disabled={isLoading}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           </div>
-          
+
           <button
             type="submit"
             disabled={isLoading}
