@@ -503,33 +503,33 @@ const LandingPage = () => {
             </section>
 
             {/* 7. Footer */}
-            <footer className="bg-[#2C3E50] text-white rounded-t-[3rem] mt-0 pt-24 pb-12 px-6 relative overflow-hidden">
+            <footer className="bg-[#2C3E50] text-white mt-0 pt-8 pb-4 px-6 relative overflow-hidden">
                 {/* Footer pattern */}
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500" />
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
 
-                <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 relative z-10">
+                <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
                     <div className="col-span-1 md:col-span-2">
-                        <div className="flex items-center gap-3 text-3xl font-bold mb-6">
-                            <img src={logo} alt="Academy Logo" className="w-12 h-12 rounded-full shadow-lg object-cover" />
+                        <div className="flex items-center gap-3 text-2xl font-bold mb-4">
+                            <img src={logo} alt="Academy Logo" className="w-10 h-10 rounded-full shadow-lg object-cover" />
                             <span>Pratik Patil's Academy</span>
                         </div>
-                        <p className="text-white/70 max-w-sm text-lg leading-relaxed">
+                        <p className="text-white/70 max-w-sm text-base leading-relaxed">
                             Empowering students to reach their full potential through quality education, expert guidance, and a commitment to excellence.
                         </p>
-                        <div className="flex gap-4 mt-8">
-                            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 cursor-pointer transition-colors backdrop-blur-sm">
-                                <Users className="w-5 h-5" />
+                        <div className="flex gap-3 mt-6">
+                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 cursor-pointer transition-colors backdrop-blur-sm">
+                                <Users className="w-4 h-4" />
                             </div>
-                            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 cursor-pointer transition-colors backdrop-blur-sm">
-                                <Star className="w-5 h-5" />
+                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 cursor-pointer transition-colors backdrop-blur-sm">
+                                <Star className="w-4 h-4" />
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 className="text-xl font-bold mb-6 text-yellow-500 uppercase tracking-widest text-sm">Quick Links</h4>
-                        <div className="flex flex-col gap-4 text-white/80 font-medium">
+                        <h4 className="text-lg font-bold mb-4 text-yellow-500 uppercase tracking-widest text-xs">Quick Links</h4>
+                        <div className="flex flex-col gap-3 text-white/80 font-medium text-sm">
                             <a href="#" className="hover:text-yellow-400 transition-colors flex items-center gap-2 group"><ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /> Home</a>
                             <a href="#achievements" className="hover:text-yellow-400 transition-colors flex items-center gap-2 group"><ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /> Achievements</a>
                             <a href="#batches" className="hover:text-yellow-400 transition-colors flex items-center gap-2 group"><ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /> Batches</a>
@@ -538,25 +538,25 @@ const LandingPage = () => {
                     </div>
 
                     <div>
-                        <h4 className="text-xl font-bold mb-6 text-yellow-500 uppercase tracking-widest text-sm">Contact Us</h4>
-                        <div className="flex flex-col gap-4 text-white/80">
+                        <h4 className="text-lg font-bold mb-4 text-yellow-500 uppercase tracking-widest text-xs">Contact Us</h4>
+                        <div className="flex flex-col gap-3 text-white/80 text-sm">
                             <p className="flex items-start gap-3">
-                                <span className="bg-white/10 p-2 rounded-lg"><HelpCircle className="w-4 h-4" /></span>
+                                <span className="bg-white/10 p-1.5 rounded-lg"><HelpCircle className="w-3.5 h-3.5" /></span>
                                 123 Education Lane, Science City, Maharastra
                             </p>
                             <p className="flex items-center gap-3">
-                                <span className="bg-white/10 p-2 rounded-lg"><CheckCircle className="w-4 h-4" /></span>
+                                <span className="bg-white/10 p-1.5 rounded-lg"><CheckCircle className="w-3.5 h-3.5" /></span>
                                 +91 98765 43210
                             </p>
                             <p className="flex items-center gap-3">
-                                <span className="bg-white/10 p-2 rounded-lg"><Sparkles className="w-4 h-4" /></span>
+                                <span className="bg-white/10 p-1.5 rounded-lg"><Sparkles className="w-3.5 h-3.5" /></span>
                                 info@pratikpatilacademy.com
                             </p>
                         </div>
                     </div>
                 </div>
-                <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-sm">
-                    <p>© 2024 Pratik Patil's Academy. All rights reserved.</p>
+                <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-xs">
+                    <p>© {new Date().getFullYear()} Pratik Patil's Academy. All rights reserved.</p>
                     <p>Designed with ❤️ for Excellence</p>
                 </div>
             </footer>
