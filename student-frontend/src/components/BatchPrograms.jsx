@@ -39,39 +39,52 @@ const batches = [
   },
 ];
 
+import { motion } from "framer-motion";
+
 function BatchPrograms() {
   return (
-    <section className="section-padding gradient-cream">
+    <section className="section-padding bg-background">
       <div className="container-narrow">
-        <h2 className="mb-12 text-center text-3xl font-bold text-primary md:text-4xl">
+        <motion.h2
+          className="mb-12 text-center text-3xl font-bold text-primary md:text-4xl"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
           Special Batch Programs
-        </h2>
+        </motion.h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {batches.map((b) => (
-            <Card
+          {batches.map((b, i) => (
+            <motion.div
               key={b.title}
-              className="card-hover border-border bg-background"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
             >
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg text-primary">
-                  {b.title}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">{b.subtitle}</p>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {b.items.map((item) => (
-                    <li
-                      key={item}
-                      className="flex items-center gap-2 text-sm text-foreground"
-                    >
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+              <Card className="card-hover border-border bg-white/90 shadow-md hover:shadow-xl transition-all duration-300">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg text-primary">
+                    {b.title}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">{b.subtitle}</p>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {b.items.map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-center gap-2 text-sm text-foreground"
+                      >
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
       </div>

@@ -28,7 +28,9 @@ function Navbar() {
 
   return (
     <nav
-      className={`sticky top-0 z-50 border-b border-[#34495E] shadow-lg transition-colors duration-300 ${scrolled ? "bg-[#2C3E50]/80 backdrop-blur-md" : "bg-[#2C3E50]"}`}
+      className={
+        "sticky top-0 z-50 border-b border-[#34495E] shadow-lg transition-colors duration-300 bg-[#2C3E50]"
+      }
     >
       <div className="container-narrow flex h-20 items-center justify-between px-4">
         {/* Logo Section */}
