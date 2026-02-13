@@ -58,7 +58,7 @@ const admissionSchema = z.object({
     required_error: "Standard is required",
   }),
   photo: z
-    .instanceof(FileList)
+    .any()
     .refine((files) => files && files.length > 0, "Photo is required")
     .refine(
       (files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE,
@@ -322,7 +322,7 @@ function AdmissionForm() {
                     />
                   </div>
                   <div className={fieldClass} data-field="photo">
-                    <Label>Photo (Max 1MB)</Label>
+                    <Label>Photo * (Max 1MB)</Label>
                     <div className="flex items-center gap-4">
                       <Button
                         type="button"
