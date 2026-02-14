@@ -47,12 +47,12 @@ app.use(cookieParser());
 
 app.use(requestLogger);
 
-app.use(generalLimiter);
+// app.use(generalLimiter);
 
 app.use('/api/health', healthRoutes);
 
 // Routes with specific rate limiters
-app.use('/api/admin', authLimiter, adminRoutes);
+app.use('/api/admin', adminRoutes); // need to add authLimiter here if login route is not separated in adminRoutes.js
 app.use('/api/admissions', admissionRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/batches', batchRoutes);

@@ -11,6 +11,10 @@ import Students from './pages/Students';
 import StudentDetail from './pages/StudentDetail';
 import Batches from './pages/Batches';
 import BatchDetail from './pages/BatchDetail';
+import Attendance from './pages/Attendance';
+import MarkAttendance from './pages/MarkAttendance';
+import AttendanceDetail from './pages/AttendanceDetail';
+import AttendanceStats from './pages/AttendanceStats';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 
@@ -31,6 +35,10 @@ const App = () => {
               <Route path="/students/:id" element={<StudentDetail />} />
               <Route path="/batches" element={<Batches />} />
               <Route path="/batches/:id" element={<BatchDetail />} />
+              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/attendance/mark" element={<MarkAttendance />} />
+              <Route path="/attendance/stats" element={<AttendanceStats />} />
+              <Route path="/attendance/:id" element={<AttendanceDetail />} />
             </Route>
           </Route>
         </Routes>

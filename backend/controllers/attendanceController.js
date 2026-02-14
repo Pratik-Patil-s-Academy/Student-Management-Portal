@@ -7,9 +7,9 @@ export const markAttendance = TryCatch(async (req, res) => {
   const { batchId, date, students, subject } = req.body;
 
   const batch = await attendanceService.validateAttendanceData(batchId, date, students);
-  
+
   await attendanceService.validateStudentsInBatch(batch, students);
-  
+
   const attendance = await attendanceService.createAttendanceRecord(batchId, date, students, subject);
 
   res.status(201).json({
@@ -77,6 +77,17 @@ export const deleteAttendance = TryCatch(async (req, res) => {
   });
 });
 
+export const getAttendanceById = TryCatch(async (req, res) => {
+  const { id } = req.params;
+
+  const attendance = await attendanceService.fetchAttendanceById(id);
+
+  res.status(200).json({
+    success: true,
+    attendance
+  });
+});
+
 export const getAttendanceStats = TryCatch(async (req, res) => {
   const { studentId } = req.params;
   const { startDate, endDate } = req.query;
@@ -92,7 +103,7 @@ export const getAttendanceStats = TryCatch(async (req, res) => {
 export const getAllAttendanceStatsByBatch = TryCatch(async (req, res) => {
   const { batchId } = req.params;
   const { startDate, endDate } = req.query;
-  
+
   const stats = await attendanceService.calculateBatchAttendanceStats(batchId, startDate, endDate);
 
   res.status(200).json({
