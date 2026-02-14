@@ -10,7 +10,8 @@ import {
   FaCalendarCheck, 
   FaClipboardList, 
   FaQuestionCircle,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaMoneyBillWave
 } from 'react-icons/fa';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -22,6 +23,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { name: 'Students', path: '/students', icon: FaUserGraduate },
     { name: 'Batches', path: '/batches', icon: FaUsers },
     { name: 'Attendance', path: '/attendance', icon: FaCalendarCheck },
+    { name: 'Fee Management', path: '/fees', icon: FaMoneyBillWave },
     { name: 'Tests', path: '/tests', icon: FaClipboardList },
     { name: 'Inquiries', path: '/inquiries', icon: FaQuestionCircle },
   ];

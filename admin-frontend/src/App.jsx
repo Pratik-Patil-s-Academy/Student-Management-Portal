@@ -15,6 +15,10 @@ import Attendance from './pages/Attendance';
 import MarkAttendance from './pages/MarkAttendance';
 import AttendanceDetail from './pages/AttendanceDetail';
 import AttendanceStats from './pages/AttendanceStats';
+import FeeManagement from './pages/FeeManagement';
+import FeeDetail from './pages/FeeDetail';
+import ProcessPayment from './pages/ProcessPayment';
+import Receipt from './pages/Receipt';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 
@@ -42,6 +46,10 @@ const App = () => {
               <Route path="/attendance/mark" element={<MarkAttendance />} />
               <Route path="/attendance/stats" element={<AttendanceStats />} />
               <Route path="/attendance/:id" element={<AttendanceDetail />} />
+              <Route path="/fees" element={<FeeManagement />} />
+              <Route path="/fees/student/:studentId" element={<FeeDetail />} />
+              <Route path="/fees/payment/:studentId" element={<ProcessPayment />} />
+              <Route path="/fees/receipt/:studentId" element={<Receipt />} />
             </Route>
           </Route>
         </Routes>

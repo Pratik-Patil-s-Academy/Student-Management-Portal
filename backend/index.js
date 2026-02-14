@@ -14,6 +14,7 @@ import attendanceRoutes from './routes/attendanceRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import inquiryRoutes from './routes/inquiryRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import feeRoutes from './routes/feeRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
 import logger from './utils/logger.js';
 import requestLogger from './middlewares/requestLogger.js';
@@ -60,6 +61,7 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/fees', feeRoutes);
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
