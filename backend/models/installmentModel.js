@@ -34,6 +34,11 @@ const installmentSchema = new mongoose.Schema({
   },
   remarks: {
     type: String
+  },
+  installmentReceiptNumber: {
+    type: String,
+    required: true,
+    unique: true
   }
 }, {
   timestamps: true
@@ -41,14 +46,15 @@ const installmentSchema = new mongoose.Schema({
 
 // Index for faster queries
 installmentSchema.index({ student: 1 });
-installmentSchema.index({ status: 1, dueDate: 1 });
+installmentSchema.index({ status: 1, paymentDate: 1 });
+installmentSchema.index({ installmentReceiptNumber: 1 });
 
-// Pre-save hook to update status
-installmentSchema.pre('save', function(next) {
-  if (this.status === 'pending' && new Date() > this.dueDate) {
-    this.status = 'overdue';
+// Pre-save hook for validation (async to work with transactions)
+installmentSchema.pre('save', async function() {
+  // Validate installment receipt number format
+  if (this.installmentReceiptNumber && !this.installmentReceiptNumber.match(/^RCP\d{8}-\d+$/)) {
+    throw new Error('Invalid installment receipt number format');
   }
-  next();
 });
 
 export const Installment = mongoose.model('Installment', installmentSchema);

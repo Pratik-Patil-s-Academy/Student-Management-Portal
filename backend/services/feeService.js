@@ -1,6 +1,7 @@
 import { Installment } from '../models/installmentModel.js';
 import { FeeReceipt } from '../models/FeeReceiptModel.js';
 import { Student } from '../models/studentModel.js';
+import { sendInstallmentReceiptEmail } from './emailService.js';
 import mongoose from 'mongoose';
 
 export const fetchStudentFeeDetails = async (studentId) => {
@@ -80,6 +81,33 @@ export const processPayment = async (
     // Create new payment record
     const paymentNumber = existingPayments.length + 1;
     
+    // Handle receipt creation/update to get receipt number for installment
+    let receipt = await FeeReceipt.findOne({ studentId }).session(session);
+    let mainReceiptNumber;
+    
+    if (!receipt) {
+      // First payment - create new receipt
+      mainReceiptNumber = await generateReceiptNumber();
+      if (!mainReceiptNumber) {
+        throw new Error('Failed to generate receipt number');
+      }
+    } else {
+      // Use existing receipt number
+      mainReceiptNumber = receipt.receiptNumber;
+    }
+    
+    // Generate installment-specific receipt number
+    const installmentReceiptNumber = `${mainReceiptNumber}-${paymentNumber}`;
+    
+    // Verify unique installment receipt number
+    const existingInstallment = await Installment.findOne({ 
+      installmentReceiptNumber 
+    }).session(session);
+    
+    if (existingInstallment) {
+      throw new Error(`Installment receipt number ${installmentReceiptNumber} already exists`);
+    }
+    
     const payment = new Installment({
       student: studentId,
       paymentNumber,
@@ -87,22 +115,19 @@ export const processPayment = async (
       paymentMode,
       transactionId,
       remarks,
-      status: 'Paid'
+      status: 'Paid',
+      installmentReceiptNumber
     });
     
     await payment.save({ session });
 
     // Handle receipt creation/update
-    let receipt = await FeeReceipt.findOne({ studentId }).session(session);
-    
     if (!receipt) {
       // First payment - create new receipt
-      const receiptNumber = await generateReceiptNumber();
-      
       receipt = new FeeReceipt({
         studentId,
         installmentIds: [payment._id],
-        receiptNumber,
+        receiptNumber: mainReceiptNumber,
         receivedFrom: student.personalDetails.fullName,
         totalAmount: amount,
         remainingAmount: totalFees - amount,
@@ -129,6 +154,22 @@ export const processPayment = async (
       .session(session);
     
     await session.commitTransaction();
+    
+    // Send email notification asynchronously (after transaction commit)
+    try {
+      const totalPaidSoFar = allPayments.reduce((sum, p) => sum + p.amount, 0);
+      const emailResult = await sendInstallmentReceiptEmail(
+        student,
+        payment,
+        totalPaidSoFar,
+        receipt.remainingAmount
+      );
+      
+      console.log('Email notification result:', emailResult);
+    } catch (emailError) {
+      // Log error but don't fail the payment process
+      console.error('Email notification failed:', emailError);
+    }
     
     return { 
       payment, 

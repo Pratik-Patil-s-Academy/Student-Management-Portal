@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 import {
   Atom,
   Rocket,
@@ -41,27 +42,51 @@ const courses = [
   },
 ];
 
+import { motion } from "framer-motion";
+
 function Courses() {
   return (
-    <section className="section-padding gradient-cream">
+    <section className="section-padding bg-background">
       <div className="container-narrow">
-        <h2 className="mb-12 text-center text-3xl font-bold text-primary md:text-4xl">
+        <motion.h2
+          className="mb-12 text-center text-3xl font-bold text-primary md:text-4xl"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
           Comprehensive Exam Preparation
-        </h2>
+        </motion.h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((c) => (
-            <Card
+          {courses.map((c, i) => (
+            <motion.div
               key={c.title}
-              className="card-hover border-border bg-background"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
             >
-              <CardHeader className="pb-3">
-                <c.icon className="mb-2 h-10 w-10 text-gold" />
-                <CardTitle className="text-primary">{c.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{c.desc}</p>
-              </CardContent>
-            </Card>
+              <Card className="relative card-hover border-2 border-gold/30 bg-white/90 shadow-md hover:shadow-xl transition-all duration-300 overflow-visible">
+                {/* Glowing Effect */}
+                <div className="absolute inset-0 z-20">
+                  <GlowingEffect
+                    spread={40}
+                    glow={true}
+                    disabled={false}
+                    proximity={60}
+                    inactiveZone={0.01}
+                    borderWidth={2}
+                  />
+                </div>
+                <CardHeader className="relative z-30 pb-3 flex flex-col items-center">
+                  <c.icon className="mb-2 h-10 w-10 text-gold" />
+                  <CardTitle className="text-primary">{c.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="relative z-30">
+                  <p className="text-sm text-muted-foreground">{c.desc}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
       </div>

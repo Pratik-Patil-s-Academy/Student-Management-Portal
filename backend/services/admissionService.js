@@ -56,7 +56,9 @@ export const checkRollNumberAvailability = async (rollno) => {
 };
 
 export const uploadStudentPhoto = async (file) => {
-  if (!file) return '';
+  if (!file) {
+    throw new Error('Photo is required');
+  }
 
   if (file.size > 1048576) {
     throw new Error('Image size must be less than 1MB');

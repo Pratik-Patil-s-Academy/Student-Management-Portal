@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { scrollToField } from "@/lib/scrollToField";
 import axios from "axios";
 import Navbar from "@/components/Navbar.jsx";
 import Footer from "@/components/Footer.jsx";
@@ -82,13 +83,19 @@ function InquiryForm() {
             element.focus();
           } else {
             // For Select components, try to focus the trigger button
-            const trigger = element.querySelector('button');
+            const trigger = element.querySelector("button");
             if (trigger) trigger.focus();
           }
         }, 300);
       }
     }
   }, [errors]);
+
+  // Helper for custom toast error and scroll
+  function toastErrorAndScroll(message, field) {
+    toast.error(message);
+    if (field) scrollToField(field);
+  }
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -137,7 +144,14 @@ function InquiryForm() {
         err.response?.data?.error ||
         err.message ||
         "Failed to submit enquiry";
-      toast.error(errorMessage);
+      // Simple keyword-to-field mapping
+      let field = null;
+      if (/name/i.test(errorMessage)) field = "fullName";
+      else if (/parent mobile/i.test(errorMessage)) field = "parentMobile";
+      else if (/email/i.test(errorMessage)) field = "email";
+      else if (/standard/i.test(errorMessage)) field = "standard";
+      else if (/address/i.test(errorMessage)) field = "address";
+      toastErrorAndScroll(errorMessage, field);
     } finally {
       setLoading(false);
     }

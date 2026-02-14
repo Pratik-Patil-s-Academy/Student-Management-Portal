@@ -13,6 +13,7 @@ import studentRoutes from './routes/studentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import inquiryRoutes from './routes/inquiryRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
 import feeRoutes from './routes/feeRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
 import logger from './utils/logger.js';
@@ -59,6 +60,7 @@ app.use('/api/batches', batchRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/inquiries', inquiryRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/fees', feeRoutes);
 
 // Swagger Documentation

@@ -3,7 +3,9 @@ import {
   getStudentFeeDetails, 
   makeFeePayment, 
   getStudentReceipt,
-  getReceiptById 
+  getReceiptById,
+  sendInstallmentEmail,
+  sendStudentAllEmails
 } from '../controllers/feeController.js';
 import { isAuth } from '../middlewares/isAuth.js';
 
@@ -20,5 +22,11 @@ router.get('/receipt/student/:studentId', isAuth, getStudentReceipt);
 
 // Get receipt by ID
 router.get('/receipt/:receiptId', isAuth, getReceiptById);
+
+// Send email for specific installment
+router.post('/email/installment/:installmentId', isAuth, sendInstallmentEmail);
+
+// Send emails for all installments of a student
+router.post('/email/student/:studentId/all', isAuth, sendStudentAllEmails);
 
 export default router;
