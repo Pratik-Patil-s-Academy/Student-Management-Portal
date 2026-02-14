@@ -54,23 +54,27 @@ const FeeManagement = () => {
       if (standardFilter && student.standard !== standardFilter) {
         return false;
       }
+      if (statusFilter) {
+        const status = student.feeInfo?.feeStatus?.toLowerCase() || 'pending';
+        if (statusFilter === 'paid' && status !== 'paid') return false;
+        if (statusFilter === 'pending' && status !== 'pending') return false;
+        if (statusFilter === 'partial' && status !== 'partially paid') return false;
+      }
       return true;
     });
 
   const getFeeStatus = (student) => {
-    return 'Pending';
+    return student.feeInfo?.feeStatus || 'No Fees';
   };
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
       case 'paid':
         return 'bg-green-100 text-green-800';
-      case 'partial':
+      case 'partially paid':
         return 'bg-yellow-100 text-yellow-800';
       case 'pending':
         return 'bg-red-100 text-red-800';
-      case 'overdue':
-        return 'bg-red-200 text-red-900';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -138,7 +142,6 @@ const FeeManagement = () => {
             <option value="paid">Fully Paid</option>
             <option value="partial">Partially Paid</option>
             <option value="pending">Pending</option>
-            <option value="overdue">Overdue</option>
           </select>
         </div>
       </div>
@@ -221,6 +224,14 @@ const FeeManagement = () => {
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColor}`}>
                           {feeStatus}
                         </span>
+                        {student.feeInfo?.hasPayments && (
+                          <div className="mt-1 text-xs text-gray-500">
+                            <div>Paid: ₹{student.feeInfo.totalPaid}</div>
+                            {student.feeInfo.remainingAmount > 0 && (
+                              <div className="text-orange-600">Due: ₹{student.feeInfo.remainingAmount}</div>
+                            )}
+                          </div>
+                        )}
                       </td>
 
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">

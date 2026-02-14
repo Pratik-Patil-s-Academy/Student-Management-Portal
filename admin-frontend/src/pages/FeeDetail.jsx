@@ -206,7 +206,17 @@ const FeeDetail = () => {
         </div>
 
         <div className="lg:col-span-3 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="bg-white p-6 rounded-xl shadow-md text-center">
+              <div className={`text-2xl font-bold ${
+                feeDetails.receipt?.feeStatus === 'Paid' ? 'text-green-600' : 
+                feeDetails.receipt?.feeStatus === 'Pending' ? 'text-orange-600' : 'text-gray-600'
+              }`}>
+                {feeDetails.receipt?.feeStatus || 'No Fees'}
+              </div>
+              <div className="text-sm text-gray-600">Fee Status</div>
+            </div>
+            
             <div className="bg-white p-6 rounded-xl shadow-md text-center">
               <div className="text-2xl font-bold text-green-600">₹{feeDetails.totalPaid || 0}</div>
               <div className="text-sm text-gray-600">Total Paid</div>
