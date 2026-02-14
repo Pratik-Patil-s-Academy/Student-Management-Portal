@@ -5,11 +5,15 @@ import {
   getStudentReceipt,
   getReceiptById,
   sendInstallmentEmail,
-  sendStudentAllEmails
+  sendStudentAllEmails,
+  getAllStudentsWithFeeStatus
 } from '../controllers/feeController.js';
 import { isAuth } from '../middlewares/isAuth.js';
 
 const router = express.Router();
+
+// Get all students with fee status
+router.get('/students', isAuth, getAllStudentsWithFeeStatus);
 
 // Get all fee details for a student
 router.get('/student/:studentId', isAuth, getStudentFeeDetails);

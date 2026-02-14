@@ -1,9 +1,9 @@
 import api from '../config/api';
 
-// Get all students with their fee details
+// Get all students with their fee status
 export const getAllStudentsWithFees = async () => {
     try {
-        const response = await api.get('/api/students/all');
+        const response = await api.get('/api/fees/students');
         return response.data;
     } catch (error) {
         throw error.response?.data || error.message;

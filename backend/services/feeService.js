@@ -124,16 +124,18 @@ export const processPayment = async (
     // Handle receipt creation/update
     if (!receipt) {
       // First payment - create new receipt
+      const newRemainingAmount = totalFees - amount;
       receipt = new FeeReceipt({
         studentId,
         installmentIds: [payment._id],
         receiptNumber: mainReceiptNumber,
         receivedFrom: student.personalDetails.fullName,
         totalAmount: amount,
-        remainingAmount: totalFees - amount,
+        remainingAmount: newRemainingAmount,
         paymentMode,
         transactionId,
         remarks,
+        feeStatus: newRemainingAmount === 0 ? 'Paid' : 'Partially Paid',
         createdBy: adminId
       });
     } else {
@@ -143,6 +145,8 @@ export const processPayment = async (
       receipt.remainingAmount -= amount;
       receipt.paymentMode = paymentMode;
       receipt.transactionId = transactionId;
+      // Update fee status based on remaining amount
+      receipt.feeStatus = receipt.remainingAmount === 0 ? 'Paid' : 'Partially Paid';
     }
 
     await receipt.save({ session });

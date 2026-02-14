@@ -166,3 +166,36 @@ export const sendStudentAllEmails = TryCatch(async (req, res) => {
     results
   });
 });
+
+// Get all students with fee status summary
+export const getAllStudentsWithFeeStatus = TryCatch(async (req, res) => {
+  const students = await Student.find().select('personalDetails rollno standard contact').lean();
+  
+  const studentsWithFeeStatus = await Promise.all(
+    students.map(async (student) => {
+      const receipt = await FeeReceipt.findOne({ studentId: student._id }).lean();
+      
+      return {
+        ...student,
+        feeInfo: receipt ? {
+          totalFees: receipt.totalAmount + receipt.remainingAmount,
+          totalPaid: receipt.totalAmount,
+          remainingAmount: receipt.remainingAmount,
+          feeStatus: receipt.feeStatus || (receipt.remainingAmount === 0 ? 'Paid' : 'Partially Paid'),
+          hasPayments: true
+        } : {
+          totalFees: 0,
+          totalPaid: 0,
+          remainingAmount: 0,
+          feeStatus: 'Pending',
+          hasPayments: false
+        }
+      };
+    })
+  );
+  
+  res.status(200).json({
+    success: true,
+    students: studentsWithFeeStatus
+  });
+});

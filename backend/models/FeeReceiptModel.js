@@ -58,6 +58,12 @@ const feeReceiptSchema = new mongoose.Schema({
     type: String
   },
 
+  feeStatus: {
+    type: String,
+    enum: ["Pending", "Partially Paid", "Paid"],
+    default: "Pending"
+  },
+
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Admin"
