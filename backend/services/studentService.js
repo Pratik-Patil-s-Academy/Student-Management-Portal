@@ -205,7 +205,7 @@ export const assignBatchToStudentRecord = async (studentId, batchId) => {
     await batch.save();
   }
 
-  return student;
+  return await student.populate('batch');
 };
 
 export const removeBatchFromStudentRecord = async (studentId) => {

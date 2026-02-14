@@ -1,4 +1,4 @@
-import {Batch} from '../models/batchModel.js';
+import { Batch } from '../models/batchModel.js';
 import { Student } from '../models/studentModel.js';
 import TryCatch from '../utils/TryCatch.js';
 import * as batchService from '../services/batchService.js';
@@ -7,11 +7,11 @@ export const createBatch = TryCatch(async (req, res) => {
   const { name, standard, startTime, endTime, days, studentIds } = req.body;
 
   await batchService.validateBatchData(name, standard, startTime, endTime, days);
-  
+
   await batchService.checkTimeConflict(days, startTime, endTime);
-  
+
   await batchService.validateStudents(studentIds);
-  
+
   const batch = await batchService.createBatchRecord(name, standard, startTime, endTime, days, studentIds);
 
   res.status(201).json({

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { scrollToField } from "@/lib/scrollToField";
 import axios from "axios";
 import Navbar from "@/components/Navbar.jsx";
 import Footer from "@/components/Footer.jsx";
@@ -57,8 +58,8 @@ const admissionSchema = z.object({
     required_error: "Standard is required",
   }),
   photo: z
-    .instanceof(FileList)
-    .optional()
+    .any()
+    .refine((files) => files && files.length > 0, "Photo is required")
     .refine(
       (files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE,
       `Max file size is 1MB.`,
@@ -159,6 +160,12 @@ function AdmissionForm() {
     }
   }, [errors]);
 
+  // Helper for custom toast error and scroll
+  function toastErrorAndScroll(message, field) {
+    toast.error(message);
+    if (field) scrollToField(field);
+  }
+
   const onSubmit = async (data) => {
     setLoading(true);
     try {
@@ -220,7 +227,14 @@ function AdmissionForm() {
         err.response?.data?.error ||
         err.message ||
         "Failed to submit admission";
-      toast.error(errorMessage);
+      // Simple keyword-to-field mapping
+      let field = null;
+      if (/name/i.test(errorMessage)) field = "fullName";
+      else if (/parent mobile/i.test(errorMessage)) field = "parentMobile";
+      else if (/email/i.test(errorMessage)) field = "email";
+      else if (/standard/i.test(errorMessage)) field = "standard";
+      else if (/address/i.test(errorMessage)) field = "address";
+      toastErrorAndScroll(errorMessage, field);
     } finally {
       setLoading(false);
     }
@@ -308,7 +322,7 @@ function AdmissionForm() {
                     />
                   </div>
                   <div className={fieldClass} data-field="photo">
-                    <Label>Photo (Max 1MB)</Label>
+                    <Label>Photo * (Max 1MB)</Label>
                     <div className="flex items-center gap-4">
                       <Button
                         type="button"

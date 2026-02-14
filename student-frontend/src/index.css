@@ -46,6 +46,14 @@
     --gold-light: 40 80% 92%;
     --success: 142 71% 45%;
     --info: 210 100% 52%;
+
+    /* Landing Page Strict Colors */
+    --color-dark-navy: #1e3a8a;
+    /* Deep Navy Blue */
+    --color-cream: #fdfbf7;
+    /* Light Cream */
+    --color-red: #ef4444;
+    /* Standard Red */
   }
 }
 

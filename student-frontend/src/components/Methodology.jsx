@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 import {
   Users,
   UserCheck,
@@ -59,24 +60,53 @@ const methods = [
   },
 ];
 
+import { motion } from "framer-motion";
+
 function Methodology() {
   return (
     <section className="section-padding bg-background">
       <div className="container-narrow">
-        <h2 className="mb-12 text-center text-3xl font-bold text-primary md:text-4xl">
+        <motion.h2
+          className="mb-12 text-center text-3xl font-bold text-primary md:text-4xl"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
           Our Teaching Methodology
-        </h2>
+        </motion.h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {methods.map((m) => (
-            <Card key={m.title} className="card-hover border-border">
-              <CardContent className="flex items-start gap-4 p-5">
-                <m.icon className="mt-0.5 h-6 w-6 shrink-0 text-gold" />
-                <div>
-                  <h3 className="mb-1 font-semibold text-primary">{m.title}</h3>
-                  <p className="text-sm text-muted-foreground">{m.desc}</p>
+          {methods.map((m, i) => (
+            <motion.div
+              key={m.title}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+            >
+              <Card className="relative card-hover border-2 border-gold/30 bg-white/90 shadow-md hover:shadow-xl transition-all duration-300 overflow-visible">
+                {/* Glowing Effect */}
+                <div className="absolute inset-0 z-20">
+                  <GlowingEffect
+                    spread={40}
+                    glow={true}
+                    disabled={false}
+                    proximity={60}
+                    inactiveZone={0.01}
+                    borderWidth={2}
+                  />
                 </div>
-              </CardContent>
-            </Card>
+                <CardContent className="relative z-30 flex items-start gap-4 p-5">
+                  <m.icon className="mt-0.5 h-6 w-6 shrink-0 text-gold" />
+                  <div>
+                    <h3 className="mb-1 font-semibold text-primary">
+                      {m.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{m.desc}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
       </div>
