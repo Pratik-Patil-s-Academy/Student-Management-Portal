@@ -19,6 +19,8 @@ import FeeManagement from './pages/FeeManagement';
 import FeeDetail from './pages/FeeDetail';
 import ProcessPayment from './pages/ProcessPayment';
 import Receipt from './pages/Receipt';
+import Tests from './pages/Tests';
+import TestDetail from './pages/TestDetail';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 
@@ -50,6 +52,8 @@ const App = () => {
               <Route path="/fees/student/:studentId" element={<FeeDetail />} />
               <Route path="/fees/payment/:studentId" element={<ProcessPayment />} />
               <Route path="/fees/receipt/:studentId" element={<Receipt />} />
+              <Route path="/tests" element={<Tests />} />
+              <Route path="/tests/:testId" element={<TestDetail />} />
             </Route>
           </Route>
         </Routes>
