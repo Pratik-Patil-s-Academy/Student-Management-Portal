@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  createStudent,
   getAllStudents,
   getStudentById,
   getStudentByRollNo,
@@ -8,7 +9,9 @@ import {
   updateStudentStatus,
   assignBatchToStudent,
   removeBatchFromStudent,
-  getStudentsWithNoBatch
+  getStudentsWithNoBatch,
+  promoteStudents,
+  getStudentsForPromotion
 } from '../controllers/studentController.js';
 import { isAuth } from '../middlewares/isAuth.js';
 import uploadFile from '../middlewares/multer.js';
@@ -144,6 +147,9 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
+router.post('/create', isAuth, uploadFile, createStudent);
+router.get('/promote', isAuth, getStudentsForPromotion);
+router.post('/promote', isAuth, promoteStudents);
 router.get('/all', isAuth, getAllStudents);
 
 /**

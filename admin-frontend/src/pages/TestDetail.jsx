@@ -13,6 +13,12 @@ import {
   FaTrophy, FaUserCheck, FaUserTimes, FaPercent
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import {
+  BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
+} from 'recharts';
+
+const ATTEND_COLORS = ['#22c55e', '#ef4444'];
 
 const TestDetail = () => {
   const { testId } = useParams();
@@ -333,6 +339,75 @@ const TestDetail = () => {
             </div>
           </div>
 
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {/* Score Distribution Bar Chart */}
+            {test.scores?.filter(s => s.attendanceStatus === 'Present').length > 0 && (
+              <div className="lg:col-span-2 bg-gray-50 rounded-xl p-4">
+                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5">
+                  <FaChartBar className="text-blue-500" /> Score Distribution
+                </h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart
+                    data={[...test.scores]
+                      .filter(s => s.attendanceStatus === 'Present')
+                      .sort((a, b) => b.marksObtained - a.marksObtained)
+                      .map(s => ({
+                        name: s.studentId?.personalDetails?.fullName?.split(' ')[0] || '—',
+                        marks: s.marksObtained,
+                        pct: Math.round((s.marksObtained / test.maxMarks) * 100),
+                      }))}
+                    margin={{ top: 5, right: 10, left: -15, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={40} />
+                    <YAxis domain={[0, test.maxMarks]} tick={{ fontSize: 11 }} />
+                    <Tooltip formatter={(v, n) => [n === 'marks' ? `${v} / ${test.maxMarks}` : `${v}%`, n === 'marks' ? 'Marks' : '%']} />
+                    <ReferenceLine y={statistics.marksAnalysis?.passingMarks} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: 'Pass', position: 'right', fontSize: 10, fill: '#f59e0b' }} />
+                    <Bar dataKey="marks" name="marks" fill="#3b82f6" radius={[3, 3, 0, 0]}
+                      label={{ position: 'top', fontSize: 9, formatter: (v) => v }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* Attendance Pie */}
+            {(statistics.attendance?.present > 0 || statistics.attendance?.absent > 0) && (
+              <div className="bg-gray-50 rounded-xl p-4">
+                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5">
+                  <FaUserCheck className="text-green-500" /> Attendance Split
+                </h3>
+                <ResponsiveContainer width="100%" height={160}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Present', value: statistics.attendance?.present || 0 },
+                        { name: 'Absent', value: statistics.attendance?.absent || 0 },
+                      ]}
+                      cx="50%" cy="50%"
+                      innerRadius={40} outerRadius={65}
+                      dataKey="value"
+                      paddingAngle={3}
+                    >
+                      {[0, 1].map(i => <Cell key={i} fill={ATTEND_COLORS[i]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v, n) => [v, n]} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex justify-center gap-4 mt-1">
+                  {[{ label: 'Present', color: ATTEND_COLORS[0], val: statistics.attendance?.present },
+                    { label: 'Absent', color: ATTEND_COLORS[1], val: statistics.attendance?.absent }].map(d => (
+                    <div key={d.label} className="flex items-center gap-1.5 text-xs">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }} />
+                      <span className="text-gray-600">{d.label}: <strong>{d.val}</strong></span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Attendance summary */}
           <div className="flex flex-wrap gap-4 mb-4">
             <div className="flex items-center gap-2 text-sm">
@@ -369,6 +444,7 @@ const TestDetail = () => {
           )}
         </div>
       )}
+
 
       {statsMessage && !statistics && hasScores && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-yellow-700 text-sm">

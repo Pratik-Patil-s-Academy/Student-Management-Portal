@@ -96,10 +96,28 @@ export const addStudentsToBatchRecord = async (batchId, studentIds) => {
     throw new Error('One or more student IDs are invalid');
   }
 
-  const newStudents = studentIds.filter(sid => !batch.students.includes(sid));
-  batch.students.push(...newStudents);
+  // Collect old batch IDs for students that are already assigned elsewhere
+  const oldBatchIds = [...new Set(
+    students
+      .filter(s => s.batch && s.batch.toString() !== batchId.toString())
+      .map(s => s.batch.toString())
+  )];
+
+  // Remove these students from their old batches
+  if (oldBatchIds.length > 0) {
+    await Batch.updateMany(
+      { _id: { $in: oldBatchIds } },
+      { $pull: { students: { $in: students.map(s => s._id) } } }
+    );
+  }
+
+  // Add to new batch (avoid duplicates using string comparison)
+  const enrolledIds = batch.students.map(id => id.toString());
+  const toAdd = studentIds.filter(sid => !enrolledIds.includes(sid.toString()));
+  batch.students.push(...toAdd);
   await batch.save();
 
+  // Update each student's batch reference
   await Student.updateMany(
     { _id: { $in: studentIds } },
     { $set: { batch: batch._id } }

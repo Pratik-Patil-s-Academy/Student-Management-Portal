@@ -1,5 +1,18 @@
 import api from '../config/api';
 
+export const createStudent = async (studentData) => {
+    try {
+        const config = {};
+        if (studentData instanceof FormData) {
+            config.headers = { 'Content-Type': 'multipart/form-data' };
+        }
+        const response = await api.post('/api/students/create', studentData, config);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
+
 export const getAllStudents = async () => {
     try {
         const response = await api.get('/api/students/all');
@@ -75,3 +88,21 @@ export const getStudentsWithNoBatch = async () => {
         throw error.response?.data || error.message;
     }
 }
+
+export const getStudentsForPromotion = async () => {
+    try {
+        const response = await api.get('/api/students/promote');
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
+
+export const promoteStudents = async (studentIds) => {
+    try {
+        const response = await api.post('/api/students/promote', { studentIds });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};

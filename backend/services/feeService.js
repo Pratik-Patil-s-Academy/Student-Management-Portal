@@ -1,8 +1,31 @@
 import { Installment } from '../models/installmentModel.js';
 import { FeeReceipt } from '../models/FeeReceiptModel.js';
 import { Student } from '../models/studentModel.js';
+import { FeeStructure } from '../models/feeStructureModel.js';
 import { sendInstallmentReceiptEmail } from './emailService.js';
 import mongoose from 'mongoose';
+
+// ── Fee Structure ─────────────────────────────────────────────────────────────
+
+export const getFeeStructures = async () => {
+  return await FeeStructure.find().sort({ standard: 1 });
+};
+
+export const upsertFeeStructure = async (standard, totalFee, description, academicYear, adminId) => {
+  if (!['11', '12', 'Others'].includes(standard)) {
+    throw new Error('Standard must be 11, 12, or Others');
+  }
+  if (!totalFee || totalFee <= 0) {
+    throw new Error('Total fee must be greater than 0');
+  }
+
+  return await FeeStructure.findOneAndUpdate(
+    { standard },
+    { standard, totalFee, description: description || '', academicYear, updatedBy: adminId },
+    { upsert: true, new: true, runValidators: true }
+  );
+};
+
 
 export const fetchStudentFeeDetails = async (studentId) => {
   const student = await Student.findById(studentId);
@@ -13,9 +36,12 @@ export const fetchStudentFeeDetails = async (studentId) => {
   const payments = await Installment.find({ student: studentId })
     .populate('student', 'personalDetails.fullName rollno')
     .sort({ paymentNumber: 1 });
-  
+
   const receipt = await FeeReceipt.findOne({ studentId })
     .populate('installmentIds');
+
+  // Fetch the fee structure for this student's standard
+  const feeStructure = await FeeStructure.findOne({ standard: student.standard });
 
   const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
 
@@ -23,22 +49,24 @@ export const fetchStudentFeeDetails = async (studentId) => {
     student: {
       _id: student._id,
       fullName: student.personalDetails.fullName,
-      rollno: student.rollno
+      rollno: student.rollno,
+      standard: student.standard
     },
     payments,
     receipt,
     totalPaid,
-    hasPayments: payments.length > 0
+    hasPayments: payments.length > 0,
+    feeStructure: feeStructure || null
   };
 };
 
 export const processPayment = async (
-  studentId, 
-  amount, 
-  paymentMode, 
-  transactionId, 
-  remarks, 
-  totalFees, 
+  studentId,
+  amount,
+  paymentMode,
+  transactionId,
+  remarks,
+  totalFees,
   adminId
 ) => {
   const session = await mongoose.startSession();
@@ -61,12 +89,17 @@ export const processPayment = async (
     // Get existing payments
     const existingPayments = await Installment.find({ student: studentId }).session(session);
     const totalPaidSoFar = existingPayments.reduce((sum, payment) => sum + payment.amount, 0);
-    
+
     let isFirstPayment = existingPayments.length === 0;
-    
-    // If first payment, need totalFees
+
+    // If first payment, need totalFees — auto-lookup from FeeStructure if not provided
     if (isFirstPayment && !totalFees) {
-      throw new Error('Total fees required for first payment');
+      const feeStructure = await FeeStructure.findOne({ standard: student.standard }).session(session);
+      if (feeStructure) {
+        totalFees = feeStructure.totalFee;
+      } else {
+        throw new Error('Total fees required for first payment (no fee structure found for this standard)');
+      }
     }
 
     // Check if payment exceeds remaining amount
@@ -80,11 +113,11 @@ export const processPayment = async (
 
     // Create new payment record
     const paymentNumber = existingPayments.length + 1;
-    
+
     // Handle receipt creation/update to get receipt number for installment
     let receipt = await FeeReceipt.findOne({ studentId }).session(session);
     let mainReceiptNumber;
-    
+
     if (!receipt) {
       // First payment - create new receipt
       mainReceiptNumber = await generateReceiptNumber();
@@ -95,19 +128,19 @@ export const processPayment = async (
       // Use existing receipt number
       mainReceiptNumber = receipt.receiptNumber;
     }
-    
+
     // Generate installment-specific receipt number
     const installmentReceiptNumber = `${mainReceiptNumber}-${paymentNumber}`;
-    
+
     // Verify unique installment receipt number
-    const existingInstallment = await Installment.findOne({ 
-      installmentReceiptNumber 
+    const existingInstallment = await Installment.findOne({
+      installmentReceiptNumber
     }).session(session);
-    
+
     if (existingInstallment) {
       throw new Error(`Installment receipt number ${installmentReceiptNumber} already exists`);
     }
-    
+
     const payment = new Installment({
       student: studentId,
       paymentNumber,
@@ -118,7 +151,7 @@ export const processPayment = async (
       status: 'Paid',
       installmentReceiptNumber
     });
-    
+
     await payment.save({ session });
 
     // Handle receipt creation/update
@@ -150,15 +183,15 @@ export const processPayment = async (
     }
 
     await receipt.save({ session });
-    
+
     // Get all payments for response
     const allPayments = await Installment.find({ student: studentId })
       .populate('student', 'personalDetails.fullName rollno')
       .sort({ paymentNumber: 1 })
       .session(session);
-    
+
     await session.commitTransaction();
-    
+
     // Send email notification asynchronously (after transaction commit)
     try {
       const totalPaidSoFar = allPayments.reduce((sum, p) => sum + p.amount, 0);
@@ -168,16 +201,16 @@ export const processPayment = async (
         totalPaidSoFar,
         receipt.remainingAmount
       );
-      
+
       console.log('Email notification result:', emailResult);
     } catch (emailError) {
       // Log error but don't fail the payment process
       console.error('Email notification failed:', emailError);
     }
-    
-    return { 
-      payment, 
-      receipt, 
+
+    return {
+      payment,
+      receipt,
       allPayments,
       isFirstPayment,
       remainingAmount: receipt.remainingAmount
@@ -194,7 +227,7 @@ export const fetchStudentReceipt = async (studentId) => {
   const receipt = await FeeReceipt.findOne({ studentId })
     .populate('studentId', 'personalDetails.fullName rollno')
     .populate('installmentIds');
-  
+
   if (!receipt) {
     throw new Error('No receipt found for this student');
   }
@@ -206,7 +239,7 @@ export const fetchReceiptById = async (receiptId) => {
   const receipt = await FeeReceipt.findById(receiptId)
     .populate('studentId', 'personalDetails.fullName rollno')
     .populate('installmentIds');
-  
+
   if (!receipt) {
     throw new Error('Receipt not found');
   }

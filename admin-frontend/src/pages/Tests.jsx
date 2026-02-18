@@ -7,6 +7,12 @@ import {
   FaGraduationCap, FaBook, FaTimes, FaChartBar
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
+} from 'recharts';
+
+const SUBJECT_COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444', '#10b981'];
+
 
 const CLASS_LEVELS = ['11th', '12th'];
 const SUBJECTS = ['Maths', 'Physics', 'Chemistry', 'Biology', 'English', 'Other'];
@@ -212,7 +218,35 @@ const Tests = () => {
         <span className="ml-auto text-sm text-gray-400">{tests.length} test{tests.length !== 1 ? 's' : ''} found</span>
       </div>
 
+      {/* Tests per Subject Chart */}
+      {tests.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <h2 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            <FaChartBar className="text-purple-500" /> Tests by Subject
+          </h2>
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart
+              data={SUBJECTS.map((subj, i) => ({
+                subject: subj,
+                count: tests.filter(t => t.subject === subj).length,
+                color: SUBJECT_COLORS[i],
+              })).filter(d => d.count > 0)}
+              margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="subject" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+              <Tooltip formatter={(v) => [v, 'Tests']} />
+              <Bar dataKey="count" name="Tests" radius={[4, 4, 0, 0]}>
+                {SUBJECTS.map((_, i) => <Cell key={i} fill={SUBJECT_COLORS[i % SUBJECT_COLORS.length]} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       {/* Test Cards Grid */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {tests.map(test => (
           <Link

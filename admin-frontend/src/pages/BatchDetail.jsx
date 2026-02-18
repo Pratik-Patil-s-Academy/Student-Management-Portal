@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getBatchById, addStudentsToBatch, removeStudentsFromBatch } from '../services/batchService';
-import { getStudentsWithNoBatch } from '../services/studentService';
-import { FaArrowLeft, FaClock, FaCalendarAlt, FaUsers, FaPlus, FaTrash, FaUserGraduate, FaSearch } from 'react-icons/fa';
+import { getAllStudents } from '../services/studentService';
+import { FaArrowLeft, FaClock, FaCalendarAlt, FaUsers, FaPlus, FaUserGraduate, FaSearch } from 'react-icons/fa';
+
+const STANDARDS = ['11', '12', 'Others'];
 
 const BatchDetail = () => {
     const { id } = useParams();
@@ -12,11 +14,14 @@ const BatchDetail = () => {
     const [error, setError] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
 
-    // Add Student Modal Action
+    // Add Student Modal
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [availableStudents, setAvailableStudents] = useState([]);
+    const [allStudents, setAllStudents] = useState([]);
+    const [loadingStudents, setLoadingStudents] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState([]);
     const [studentSearch, setStudentSearch] = useState('');
+    const [standardTab, setStandardTab] = useState('11');   // '11' | '12' | 'Others'
+    const [assignTab, setAssignTab] = useState('unassigned'); // 'unassigned' | 'assigned'
 
     useEffect(() => {
         fetchBatch();
@@ -26,9 +31,7 @@ const BatchDetail = () => {
         setLoading(true);
         try {
             const data = await getBatchById(id);
-            if (data.success) {
-                setBatch(data.batch);
-            }
+            if (data.success) setBatch(data.batch);
         } catch (err) {
             setError(err.message || 'Failed to fetch batch details');
         } finally {
@@ -36,31 +39,30 @@ const BatchDetail = () => {
         }
     };
 
-    const fetchAvailableStudents = async () => {
-        try {
-            const data = await getStudentsWithNoBatch();
-            if (data.success) {
-                setAvailableStudents(data.students);
-            }
-        } catch (err) {
-            console.error('Failed to fetch available students', err);
-        }
-    }
-
-    const openAddModal = () => {
-        fetchAvailableStudents();
-        setStudentSearch('');
+    const openAddModal = async () => {
         setSelectedStudents([]);
+        setStudentSearch('');
+        setStandardTab('11');
+        setAssignTab('unassigned');
         setIsAddModalOpen(true);
-    }
+        setLoadingStudents(true);
+        try {
+            const data = await getAllStudents();
+            if (data.success) setAllStudents(data.students);
+        } catch (err) {
+            console.error('Failed to fetch students', err);
+        } finally {
+            setLoadingStudents(false);
+        }
+    };
 
     const handleSelectStudent = (studentId) => {
         setSelectedStudents(prev =>
             prev.includes(studentId)
-                ? prev.filter(id => id !== studentId)
+                ? prev.filter(sid => sid !== studentId)
                 : [...prev, studentId]
         );
-    }
+    };
 
     const handleAddStudents = async () => {
         if (selectedStudents.length === 0) return;
@@ -68,23 +70,68 @@ const BatchDetail = () => {
         try {
             await addStudentsToBatch(id, selectedStudents);
             setIsAddModalOpen(false);
-            fetchBatch(); // Refresh
+            fetchBatch();
         } catch (err) {
             alert(err.message || 'Failed to add students');
         } finally {
             setActionLoading(false);
         }
-    }
+    };
 
     const handleRemoveStudent = async (studentId) => {
         if (!window.confirm('Are you sure you want to remove this student from the batch?')) return;
         try {
             await removeStudentsFromBatch(id, [studentId]);
-            fetchBatch(); // Refresh
+            fetchBatch();
         } catch (err) {
             alert(err.message || 'Failed to remove student');
         }
-    }
+    };
+
+    // Compute the currently enrolled student IDs for this batch
+    const enrolledIds = useMemo(() => new Set((batch?.students || []).map(s => s._id)), [batch]);
+
+    // Filter students for the modal based on tabs + search
+    const modalStudents = useMemo(() => {
+        return allStudents.filter(s => {
+            // Standard filter
+            if (s.standard !== standardTab) return false;
+
+            // Assigned/Unassigned filter
+            const isInThisBatch = enrolledIds.has(s._id);
+            const isAssignedElsewhere = s.batch && !isInThisBatch;
+
+            if (assignTab === 'unassigned') {
+                // Students with no batch at all
+                if (s.batch) return false;
+            } else {
+                // Students assigned to another batch (not this one)
+                if (!isAssignedElsewhere) return false;
+            }
+
+            // Search filter
+            if (studentSearch) {
+                const q = studentSearch.toLowerCase();
+                return (
+                    s.personalDetails?.fullName?.toLowerCase().includes(q) ||
+                    s.contact?.parentMobile?.includes(q) ||
+                    s.rollno?.toString().includes(q)
+                );
+            }
+            return true;
+        });
+    }, [allStudents, standardTab, assignTab, studentSearch, enrolledIds]);
+
+    // Count badges for tabs
+    const countFor = (std, assign) => {
+        return allStudents.filter(s => {
+            if (s.standard !== std) return false;
+            const isInThisBatch = enrolledIds.has(s._id);
+            const isAssignedElsewhere = s.batch && !isInThisBatch;
+            if (assign === 'unassigned') return !s.batch;
+            return !!isAssignedElsewhere;
+        }).length;
+    };
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-screen">
@@ -97,11 +144,6 @@ const BatchDetail = () => {
 
     if (error) return <div className="p-8 text-center text-red-600 bg-red-50 rounded-lg border border-red-200">Error: {error}</div>;
     if (!batch) return <div className="p-8 text-center text-gray-600 bg-gray-50 rounded-lg">Batch not found.</div>;
-
-    const filteredAvailableStudents = availableStudents.filter(s =>
-        s.personalDetails?.fullName?.toLowerCase().includes(studentSearch.toLowerCase()) ||
-        s.contact?.parentMobile?.includes(studentSearch)
-    );
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto pb-12">
@@ -184,7 +226,7 @@ const BatchDetail = () => {
                                 <tr key={student._id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
-                                            <div className="flex-shrink-0 h-10 w-10 relative">
+                                            <div className="flex-shrink-0 h-10 w-10">
                                                 {student.personalDetails?.photoUrl ? (
                                                     <img className="h-10 w-10 rounded-full object-cover" src={student.personalDetails.photoUrl} alt="" />
                                                 ) : (
@@ -199,17 +241,14 @@ const BatchDetail = () => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {student.contact?.parentMobile}
-                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.contact?.parentMobile}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {batch.standard === '11' || batch.standard === '12'
                                             ? student.academics?.hsc?.collegeName || student.academics?.ssc?.schoolName
                                             : student.academics?.ssc?.schoolName}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                ${student.status === 'Admitted' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${student.status === 'Admitted' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                             {student.status}
                                         </span>
                                     </td>
@@ -236,75 +275,154 @@ const BatchDetail = () => {
                 </div>
             </div>
 
-            {/* Add Student Modal */}
+            {/* ── Add Student Modal ─────────────────────────────────────────────── */}
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col animate-scaleIn">
-                        <div className="bg-[#2C3E50] p-5 flex justify-between items-center text-white rounded-t-2xl">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col" style={{ maxHeight: '88vh' }}>
+
+                        {/* Modal Header */}
+                        <div className="bg-[#2C3E50] p-5 flex justify-between items-center text-white rounded-t-2xl flex-shrink-0">
                             <h2 className="text-xl font-bold">Add Students to Batch</h2>
                             <button onClick={() => setIsAddModalOpen(false)} className="hover:text-gray-300 font-bold text-xl">&times;</button>
                         </div>
 
-                        <div className="p-4 border-b">
+                        {/* Standard Tabs */}
+                        <div className="flex border-b border-gray-200 flex-shrink-0 bg-gray-50">
+                            {STANDARDS.map(std => (
+                                <button
+                                    key={std}
+                                    onClick={() => { setStandardTab(std); setSelectedStudents([]); setStudentSearch(''); }}
+                                    className={`flex-1 py-3 text-sm font-semibold transition-all border-b-2 ${
+                                        standardTab === std
+                                            ? 'border-[#2C3E50] text-[#2C3E50] bg-white'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                                    }`}
+                                >
+                                    Standard {std}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Assigned / Unassigned Sub-tabs */}
+                        <div className="flex gap-2 px-4 pt-3 flex-shrink-0">
+                            <button
+                                onClick={() => { setAssignTab('unassigned'); setSelectedStudents([]); }}
+                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                                    assignTab === 'unassigned'
+                                        ? 'bg-green-600 text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                            >
+                                Unassigned
+                                <span className={`px-1.5 py-0.5 rounded-full text-xs ${assignTab === 'unassigned' ? 'bg-green-500' : 'bg-gray-200 text-gray-500'}`}>
+                                    {countFor(standardTab, 'unassigned')}
+                                </span>
+                            </button>
+                            <button
+                                onClick={() => { setAssignTab('assigned'); setSelectedStudents([]); }}
+                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                                    assignTab === 'assigned'
+                                        ? 'bg-orange-500 text-white'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                            >
+                                Assigned to other batch
+                                <span className={`px-1.5 py-0.5 rounded-full text-xs ${assignTab === 'assigned' ? 'bg-orange-400' : 'bg-gray-200 text-gray-500'}`}>
+                                    {countFor(standardTab, 'assigned')}
+                                </span>
+                            </button>
+                        </div>
+
+                        {/* Search */}
+                        <div className="px-4 pt-3 pb-2 flex-shrink-0">
                             <div className="relative">
                                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Search unassigned students..."
-                                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Search by name, mobile or roll no..."
+                                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2C3E50] text-sm"
                                     value={studentSearch}
                                     onChange={(e) => setStudentSearch(e.target.value)}
                                 />
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                            {filteredAvailableStudents.length === 0 ? (
-                                <div className="text-center text-gray-500 py-10">
-                                    {studentSearch ? 'No matching students found.' : 'No unassigned students available.'}
+                        {/* Student List */}
+                        <div className="flex-1 overflow-y-auto px-4 pb-2 space-y-2">
+                            {loadingStudents ? (
+                                <div className="flex items-center justify-center py-10">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2C3E50]"></div>
+                                    <span className="ml-3 text-gray-500 text-sm">Loading students...</span>
+                                </div>
+                            ) : modalStudents.length === 0 ? (
+                                <div className="text-center text-gray-400 py-10 text-sm">
+                                    {studentSearch
+                                        ? 'No matching students found.'
+                                        : assignTab === 'unassigned'
+                                            ? `No unassigned Standard ${standardTab} students.`
+                                            : `No Standard ${standardTab} students assigned to other batches.`}
                                 </div>
                             ) : (
-                                filteredAvailableStudents.map(student => (
-                                    <div
-                                        key={student._id}
-                                        onClick={() => handleSelectStudent(student._id)}
-                                        className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${selectedStudents.includes(student._id)
-                                            ? 'bg-blue-50 border-blue-500 shadow-sm'
-                                            : 'hover:bg-gray-50 border-gray-200'
+                                modalStudents.map(student => {
+                                    const isSelected = selectedStudents.includes(student._id);
+                                    return (
+                                        <div
+                                            key={student._id}
+                                            onClick={() => handleSelectStudent(student._id)}
+                                            className={`flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                                                isSelected
+                                                    ? 'bg-blue-50 border-blue-500 shadow-sm'
+                                                    : 'hover:bg-gray-50 border-gray-200'
                                             }`}
-                                    >
-                                        <div className={`w-5 h-5 rounded border mr-3 flex items-center justify-center ${selectedStudents.includes(student._id) ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300'
+                                        >
+                                            {/* Checkbox */}
+                                            <div className={`w-5 h-5 rounded border mr-3 flex-shrink-0 flex items-center justify-center ${
+                                                isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300'
                                             }`}>
-                                            {selectedStudents.includes(student._id) && <span className="text-xs">✓</span>}
-                                        </div>
-                                        <div className="flex items-center gap-3">
+                                                {isSelected && <span className="text-xs">✓</span>}
+                                            </div>
+
+                                            {/* Avatar */}
                                             {student.personalDetails?.photoUrl ? (
-                                                <img className="h-8 w-8 rounded-full object-cover" src={student.personalDetails.photoUrl} alt="" />
+                                                <img className="h-9 w-9 rounded-full object-cover mr-3 flex-shrink-0" src={student.personalDetails.photoUrl} alt="" />
                                             ) : (
-                                                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                                                <div className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs mr-3 flex-shrink-0">
                                                     <FaUserGraduate />
                                                 </div>
                                             )}
-                                            <div>
-                                                <h4 className="font-bold text-gray-800">{student.personalDetails?.fullName}</h4>
-                                                <p className="text-xs text-gray-500">Std: {student.standard}</p>
+
+                                            {/* Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className="font-semibold text-gray-800 text-sm">{student.personalDetails?.fullName}</span>
+                                                    {student.rollno && <span className="text-xs text-gray-400">#{student.rollno}</span>}
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-0.5">{student.contact?.parentMobile}</div>
                                             </div>
+
+                                            {/* Current batch badge (for assigned tab) */}
+                                            {assignTab === 'assigned' && student.batch && (
+                                                <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-lg font-semibold flex-shrink-0 max-w-[120px] truncate">
+                                                    {student.batch.name}
+                                                </span>
+                                            )}
                                         </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
 
-                        <div className="p-5 border-t bg-gray-50 rounded-b-2xl flex justify-between items-center">
-                            <span className="text-sm font-semibold text-gray-600">{selectedStudents.length} students selected</span>
+                        {/* Footer */}
+                        <div className="p-4 border-t bg-gray-50 rounded-b-2xl flex justify-between items-center flex-shrink-0">
+                            <span className="text-sm font-semibold text-gray-600">{selectedStudents.length} selected</span>
                             <div className="flex gap-3">
-                                <button onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">Cancel</button>
+                                <button onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium">Cancel</button>
                                 <button
                                     onClick={handleAddStudents}
                                     disabled={selectedStudents.length === 0 || actionLoading}
-                                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold disabled:opacity-50 shadow-md"
+                                    className="px-6 py-2 bg-[#2C3E50] hover:bg-[#34495E] text-white rounded-lg font-semibold disabled:opacity-50 shadow-md text-sm transition-colors"
                                 >
-                                    {actionLoading ? 'Adding...' : 'Add Selected'}
+                                    {actionLoading ? 'Adding...' : `Add ${selectedStudents.length > 0 ? selectedStudents.length : ''} Selected`}
                                 </button>
                             </div>
                         </div>

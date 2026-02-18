@@ -51,6 +51,12 @@ const ProcessPayment = () => {
             ...prev,
             totalAmount: feeResponse.value.feeDetails.receipt.totalAmount + feeResponse.value.feeDetails.receipt.remainingAmount
           }));
+        } else if (!feeResponse.value.feeDetails.hasPayments && feeResponse.value.feeDetails.feeStructure) {
+          // Auto-fill from fee structure on first payment
+          setFormData(prev => ({
+            ...prev,
+            totalAmount: feeResponse.value.feeDetails.feeStructure.totalFee
+          }));
         }
       } else {
         setFeeDetails({
@@ -253,6 +259,13 @@ const ProcessPayment = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Total Fees Amount <span className="text-red-500">*</span>
                   </label>
+                  {feeDetails?.feeStructure && (
+                    <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex items-center gap-2">
+                      <span className="font-semibold">Auto-filled from fee structure:</span>
+                      ₹{feeDetails.feeStructure.totalFee.toLocaleString('en-IN')}
+                      {feeDetails.feeStructure.academicYear && <span className="text-blue-500">({feeDetails.feeStructure.academicYear})</span>}
+                    </div>
+                  )}
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
                     <input
@@ -266,7 +279,9 @@ const ProcessPayment = () => {
                       className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Total fees for the entire course/year</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {feeDetails?.feeStructure ? 'Auto-filled from fee structure. You can override if needed.' : 'Total fees for the entire course/year'}
+                  </p>
                 </div>
               )}
 

@@ -69,3 +69,23 @@ export const sendAllInstallmentEmails = async (studentId) => {
         throw error.response?.data || error.message;
     }
 };
+
+// Get all fee structures (one per standard)
+export const getFeeStructures = async () => {
+    try {
+        const response = await api.get('/api/fees/structure');
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
+
+// Create or update fee structure for a standard
+export const upsertFeeStructure = async (data) => {
+    try {
+        const response = await api.post('/api/fees/structure', data);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};

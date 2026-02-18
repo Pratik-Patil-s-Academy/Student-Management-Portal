@@ -4,6 +4,106 @@ import { Admission } from '../models/admissionModel.js';
 import getDataUrl from '../utils/urlgenerator.js';
 import cloudinary from '../utils/cloudinary.js';
 
+export const validateStudentCreate = async (data) => {
+  const { fullName, parentMobile, standard } = data;
+
+  if (!fullName || fullName.trim().length < 2) {
+    throw new Error('Full name is required (minimum 2 characters)');
+  }
+
+  if (!parentMobile || !/^[0-9]{10}$/.test(parentMobile)) {
+    throw new Error('Valid 10-digit parent mobile number is required');
+  }
+
+  if (!standard || !['11', '12', 'Others'].includes(standard)) {
+    throw new Error('Standard must be 11, 12, or Others');
+  }
+
+  // Check duplicate parent mobile
+  const existingByMobile = await Student.findOne({ 'contact.parentMobile': parentMobile });
+  if (existingByMobile) {
+    throw new Error('A student with this parent mobile number already exists');
+  }
+};
+
+export const createStudentRecord = async (data, file) => {
+  const {
+    fullName, address, dob, gender, caste,
+    fatherName, fatherOccupation, motherName, motherOccupation,
+    parentMobile, studentMobile, email,
+    sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
+    hscBoard, hscCollegeName, hscPercentageOrCGPA, hscMathsMarks,
+    reference, admissionDate, targetExamination,
+    standard, batch, rollno, status
+  } = data;
+
+  // Optional photo upload
+  let photoUrl = '';
+  if (file) {
+    if (file.size > 1048576) throw new Error('Image size must be less than 1MB');
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.mimetype)) throw new Error('Only JPG, JPEG, and PNG images are allowed');
+    const fileUrl = getDataUrl(file);
+    const cloudRes = await cloudinary.uploader.upload(fileUrl.content, {
+      folder: 'student_photos',
+      resource_type: 'image'
+    });
+    photoUrl = cloudRes.secure_url;
+  }
+
+  const studentData = {
+    personalDetails: {
+      fullName: fullName.trim(),
+      address: address?.trim() || '',
+      dob: dob || null,
+      gender: gender || undefined,
+      caste: caste?.trim() || '',
+      photoUrl
+    },
+    parents: {
+      father: { name: fatherName?.trim() || '', occupation: fatherOccupation?.trim() || '' },
+      mother: { name: motherName?.trim() || '', occupation: motherOccupation?.trim() || '' }
+    },
+    contact: {
+      parentMobile,
+      studentMobile: studentMobile || '',
+      email: email?.trim() || ''
+    },
+    academics: {
+      ssc: {
+        board: sscBoard || undefined,
+        schoolName: sscSchoolName?.trim() || '',
+        percentageOrCGPA: sscPercentageOrCGPA ? Number(sscPercentageOrCGPA) : undefined,
+        mathsMarks: sscMathsMarks ? Number(sscMathsMarks) : undefined
+      },
+      hsc: {
+        board: hscBoard || undefined,
+        collegeName: hscCollegeName?.trim() || '',
+        percentageOrCGPA: hscPercentageOrCGPA ? Number(hscPercentageOrCGPA) : undefined,
+        mathsMarks: hscMathsMarks ? Number(hscMathsMarks) : undefined
+      }
+    },
+    admission: {
+      reference: reference?.trim() || '',
+      admissionDate: admissionDate || null,
+      targetExamination: targetExamination?.trim() || ''
+    },
+    standard,
+    batch: batch || null,
+    rollno: rollno ? Number(rollno) : undefined,
+    status: status || 'Admitted'
+  };
+
+  const student = await Student.create(studentData);
+
+  // If a batch was provided, add student to batch's students array
+  if (batch) {
+    await Batch.findByIdAndUpdate(batch, { $addToSet: { students: student._id } });
+  }
+
+  return await student.populate('batch');
+};
+
 export const fetchAllStudents = async () => {
   return await Student.find()
     .populate('batch')
@@ -235,3 +335,70 @@ export const fetchStudentsWithNoBatch = async () => {
     ]
   });
 };
+
+/**
+ * Get all Standard 11 students with their fee status for the promote preview.
+ */
+export const getStudentsForPromotion = async () => {
+  const { Installment } = await import('../models/installmentModel.js');
+  const { FeeReceipt } = await import('../models/FeeReceiptModel.js');
+
+  const students = await Student.find({ standard: '11' })
+    .select('_id personalDetails rollno contact batch')
+    .populate('batch', 'name');
+
+  const studentsWithFees = await Promise.all(students.map(async (s) => {
+    const receipt = await FeeReceipt.findOne({ studentId: s._id }).lean();
+    const feeStatus = receipt
+      ? { totalFees: receipt.totalAmount + receipt.remainingAmount, paid: receipt.totalAmount, remaining: receipt.remainingAmount, status: receipt.feeStatus }
+      : { totalFees: 0, paid: 0, remaining: 0, status: 'No Fees' };
+    return { ...s.toObject(), feeStatus };
+  }));
+
+  return studentsWithFees;
+};
+
+/**
+ * Promote selected students from standard '11' to '12'.
+ * - Resets fee records (Installment + FeeReceipt) for promoted students.
+ * - Removes them from their current batches.
+ * @param {string[]} studentIds - IDs of students to promote
+ */
+export const promoteStudentsToNextStandard = async (studentIds) => {
+  const { Installment } = await import('../models/installmentModel.js');
+  const { FeeReceipt } = await import('../models/FeeReceiptModel.js');
+
+  if (!studentIds || studentIds.length === 0) {
+    throw new Error('No students selected for promotion');
+  }
+
+  // Verify all selected students are actually Standard 11
+  const students = await Student.find({ _id: { $in: studentIds }, standard: '11' }).select('_id batch');
+  if (students.length === 0) {
+    return { promoted: 0, message: 'No valid Standard 11 students found in selection' };
+  }
+
+  const validIds = students.map(s => s._id);
+  const batchIds = [...new Set(students.filter(s => s.batch).map(s => s.batch.toString()))];
+
+  // 1. Reset fee records — delete installments and receipts for promoted students
+  await Installment.deleteMany({ student: { $in: validIds } });
+  await FeeReceipt.deleteMany({ studentId: { $in: validIds } });
+
+  // 2. Bulk update: set standard to '12', clear batch
+  await Student.updateMany(
+    { _id: { $in: validIds } },
+    { $set: { standard: '12' }, $unset: { batch: '' } }
+  );
+
+  // 3. Remove these students from their old batches
+  if (batchIds.length > 0) {
+    await Batch.updateMany(
+      { _id: { $in: batchIds } },
+      { $pull: { students: { $in: validIds } } }
+    );
+  }
+
+  return { promoted: validIds.length };
+};
+

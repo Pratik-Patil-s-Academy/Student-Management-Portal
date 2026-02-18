@@ -1,16 +1,22 @@
 import express from 'express';
-import { 
-  getStudentFeeDetails, 
-  makeFeePayment, 
+import {
+  getStudentFeeDetails,
+  makeFeePayment,
   getStudentReceipt,
   getReceiptById,
   sendInstallmentEmail,
   sendStudentAllEmails,
-  getAllStudentsWithFeeStatus
+  getAllStudentsWithFeeStatus,
+  getFeeStructures,
+  upsertFeeStructure
 } from '../controllers/feeController.js';
 import { isAuth } from '../middlewares/isAuth.js';
 
 const router = express.Router();
+
+// Fee Structure routes
+router.get('/structure', isAuth, getFeeStructures);
+router.post('/structure', isAuth, upsertFeeStructure);
 
 // Get all students with fee status
 router.get('/students', isAuth, getAllStudentsWithFeeStatus);

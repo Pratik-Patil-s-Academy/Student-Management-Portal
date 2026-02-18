@@ -4,6 +4,13 @@ import { getStudentAttendanceStats, getAttendanceByBatch } from '../services/att
 import { getAllBatches } from '../services/batchService';
 import { getAllStudents } from '../services/studentService';
 import { FaArrowLeft, FaChartBar, FaFilter, FaUsers, FaUserGraduate } from 'react-icons/fa';
+import {
+  PieChart, Pie, Cell, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
+} from 'recharts';
+
+const PIE_COLORS = ['#22c55e', '#ef4444'];
+
 
 const AttendanceStats = () => {
   const navigate = useNavigate();
@@ -239,38 +246,70 @@ const AttendanceStats = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-              <p className="text-sm text-blue-600 font-medium mb-2">Total Classes</p>
-              <p className="text-4xl font-bold text-blue-700">{stats.totalClasses}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            {/* Stat Cards */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200">
+                <p className="text-sm text-blue-600 font-medium mb-2">Total Classes</p>
+                <p className="text-4xl font-bold text-blue-700">{stats.totalClasses}</p>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5 border border-green-200">
+                <p className="text-sm text-green-600 font-medium mb-2">Present</p>
+                <p className="text-4xl font-bold text-green-700">{stats.totalPresent}</p>
+              </div>
+              <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-5 border border-red-200">
+                <p className="text-sm text-red-600 font-medium mb-2">Absent</p>
+                <p className="text-4xl font-bold text-red-700">{stats.totalAbsent}</p>
+              </div>
+              <div className={`bg-gradient-to-br rounded-xl p-5 border ${
+                stats.attendancePercentage >= 75 ? 'from-green-50 to-green-100 border-green-200' :
+                stats.attendancePercentage >= 60 ? 'from-yellow-50 to-yellow-100 border-yellow-200' :
+                'from-red-50 to-red-100 border-red-200'
+              }`}>
+                <p className={`text-sm font-medium mb-2 ${
+                  stats.attendancePercentage >= 75 ? 'text-green-600' :
+                  stats.attendancePercentage >= 60 ? 'text-yellow-600' : 'text-red-600'
+                }`}>Attendance %</p>
+                <p className={`text-4xl font-bold ${
+                  stats.attendancePercentage >= 75 ? 'text-green-700' :
+                  stats.attendancePercentage >= 60 ? 'text-yellow-700' : 'text-red-700'
+                }`}>{stats.attendancePercentage}%</p>
+              </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-              <p className="text-sm text-green-600 font-medium mb-2">Present</p>
-              <p className="text-4xl font-bold text-green-700">{stats.totalPresent}</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 border border-red-200">
-              <p className="text-sm text-red-600 font-medium mb-2">Absent</p>
-              <p className="text-4xl font-bold text-red-700">{stats.totalAbsent}</p>
-            </div>
-
-            <div className={`bg-gradient-to-br rounded-xl p-6 border ${
-              stats.attendancePercentage >= 75 ? 'from-green-50 to-green-100 border-green-200' :
-              stats.attendancePercentage >= 60 ? 'from-yellow-50 to-yellow-100 border-yellow-200' :
-              'from-red-50 to-red-100 border-red-200'
-            }`}>
-              <p className={`text-sm font-medium mb-2 ${
-                stats.attendancePercentage >= 75 ? 'text-green-600' :
-                stats.attendancePercentage >= 60 ? 'text-yellow-600' :
-                'text-red-600'
-              }`}>Attendance %</p>
-              <p className={`text-4xl font-bold ${
-                stats.attendancePercentage >= 75 ? 'text-green-700' :
-                stats.attendancePercentage >= 60 ? 'text-yellow-700' :
-                'text-red-700'
-              }`}>{stats.attendancePercentage}%</p>
-            </div>
+            {/* Pie Chart */}
+            {stats.totalClasses > 0 && (
+              <div className="flex flex-col items-center">
+                <h3 className="text-sm font-bold text-gray-600 mb-2">Attendance Breakdown</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Present', value: stats.totalPresent },
+                        { name: 'Absent', value: stats.totalAbsent },
+                      ]}
+                      cx="50%" cy="50%"
+                      innerRadius={55} outerRadius={80}
+                      dataKey="value"
+                      paddingAngle={3}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
+                      {[0, 1].map(i => <Cell key={i} fill={PIE_COLORS[i]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v, n) => [v, n]} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex gap-4 mt-1">
+                  {[{ label: 'Present', color: PIE_COLORS[0] }, { label: 'Absent', color: PIE_COLORS[1] }].map(d => (
+                    <div key={d.label} className="flex items-center gap-1.5 text-xs">
+                      <div className="w-3 h-3 rounded-full" style={{ background: d.color }} />
+                      <span className="text-gray-600">{d.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -281,8 +320,36 @@ const AttendanceStats = () => {
           <div className="flex items-center gap-2 mb-6">
             <FaUsers className="text-2xl text-purple-600" />
             <h2 className="text-2xl font-semibold text-gray-800">
-              {batches.find(b => b._id === selectedBatch)?.name || 'Batch'} - Student-wise Statistics
+              {batches.find(b => b._id === selectedBatch)?.name || 'Batch'} — Student-wise Statistics
             </h2>
+          </div>
+
+          {/* Horizontal Bar Chart */}
+          <div className="bg-gray-50 rounded-xl p-4 mb-6">
+            <h3 className="text-sm font-bold text-gray-700 mb-3">Attendance % per Student</h3>
+            <ResponsiveContainer width="100%" height={Math.max(200, batchStats.length * 36)}>
+              <BarChart
+                layout="vertical"
+                data={[...batchStats]
+                  .sort((a, b) => b.attendancePercentage - a.attendancePercentage)
+                  .map(s => ({
+                    name: s.name.split(' ')[0],
+                    pct: parseFloat(s.attendancePercentage),
+                  }))}
+                margin={{ top: 5, right: 40, left: 10, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={70} />
+                <Tooltip formatter={(v) => [`${v}%`, 'Attendance']} />
+                <ReferenceLine x={75} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: '75%', position: 'top', fontSize: 10, fill: '#f59e0b' }} />
+                <Bar dataKey="pct" name="Attendance %" radius={[0, 4, 4, 0]}
+                  label={{ position: 'right', fontSize: 10, formatter: (v) => `${v}%` }}
+                  fill="#6366f1"
+                  background={{ fill: '#f3f4f6', radius: [0, 4, 4, 0] }}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
           {/* Desktop Table */}
@@ -354,6 +421,7 @@ const AttendanceStats = () => {
           </div>
         </div>
       )}
+
 
       {/* Empty State */}
       {!loading && !stats && batchStats.length === 0 && (

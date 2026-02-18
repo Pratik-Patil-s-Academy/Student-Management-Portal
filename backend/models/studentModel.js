@@ -61,7 +61,7 @@ const studentSchema = new mongoose.Schema({
   },
   rollno: {
     type: Number,
- 
+
   },
   status: {
     type: String,
@@ -69,5 +69,20 @@ const studentSchema = new mongoose.Schema({
     default: "Admitted"
   }
 }, { timestamps: true });
+
+/**
+ * Pre-save middleware: whenever a student is saved with a batch assigned,
+ * automatically sync their `standard` from the Batch document.
+ * This ensures Student.standard always matches Batch.standard.
+ */
+studentSchema.pre('save', async function () {
+  if (this.batch && (this.isNew || this.isModified('batch'))) {
+    const Batch = mongoose.model('Batch');
+    const batch = await Batch.findById(this.batch).select('standard');
+    if (batch) {
+      this.standard = batch.standard;
+    }
+  }
+});
 
 export const Student = mongoose.model("Student", studentSchema);
