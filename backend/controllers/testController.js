@@ -4,6 +4,7 @@ import { Batch } from '../models/batchModel.js';
 import TryCatch from '../utils/TryCatch.js';
 import * as testService from '../services/testService.js';
 
+
 /**
  * CREATE TEST
  * Creates a new test for selected batches
@@ -25,9 +26,9 @@ import * as testService from '../services/testService.js';
  */
 export const createTest = TryCatch(async (req, res) => {
   testService.validateTestData(req.body);
-  
+
   await testService.validateBatches(req.body.applicableBatches);
-  
+
   const test = await testService.createTestRecord(req.body);
 
   res.status(201).json({
@@ -39,7 +40,7 @@ export const createTest = TryCatch(async (req, res) => {
 
 export const addOrUpdateScores = TryCatch(async (req, res) => {
   const test = await testService.validateScores(req.params.testId, req.body.scores);
-  
+
   const updatedTest = await testService.updateTestScores(test, req.body.scores);
 
   res.status(200).json({
@@ -103,5 +104,15 @@ export const getTestStatistics = TryCatch(async (req, res) => {
   res.status(200).json({
     success: true,
     statistics: result.statistics
+  });
+});
+
+export const getOverallPerformance = TryCatch(async (req, res) => {
+  const { limit = 10, classLevel, batchId } = req.query;
+  const result = await testService.getOverallPerformance({ limit, classLevel, batchId });
+
+  res.status(200).json({
+    success: true,
+    ...result
   });
 });

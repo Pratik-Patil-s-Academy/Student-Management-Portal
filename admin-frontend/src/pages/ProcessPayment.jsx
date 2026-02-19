@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getStudentFeeDetails, makeFeePayment } from '../services/feeService';
 import { getStudentById } from '../services/studentService';
-import { FaArrowLeft, FaMoneyBillWave, FaSave, FaUser, FaCheckCircle } from 'react-icons/fa';
+import { FaArrowLeft, FaMoneyBillWave, FaSave, FaUser, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 const ProcessPayment = () => {
   const { studentId } = useParams();
   const navigate = useNavigate();
-  
+
   const [student, setStudent] = useState(null);
   const [feeDetails, setFeeDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +45,7 @@ const ProcessPayment = () => {
 
       if (feeResponse.status === 'fulfilled' && feeResponse.value.success) {
         setFeeDetails(feeResponse.value.feeDetails);
-        
+
         if (feeResponse.value.feeDetails.hasPayments && feeResponse.value.feeDetails.receipt) {
           setFormData(prev => ({
             ...prev,
@@ -85,9 +85,15 @@ const ProcessPayment = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
       toast.error('Please enter a valid payment amount');
+      return;
+    }
+
+    // Hard block if no email
+    if (!student.contact?.email) {
+      toast.error('Cannot process payment — update student email first.');
       return;
     }
 
@@ -123,7 +129,7 @@ const ProcessPayment = () => {
       }
 
       const result = await makeFeePayment(paymentData);
-      
+
       if (result.success) {
         toast.success('Payment recorded successfully!');
         if (result.emailSent) {
@@ -152,7 +158,7 @@ const ProcessPayment = () => {
   if (error) return (
     <div className="p-8 text-center text-red-600 bg-red-50 rounded-lg border border-red-200">
       Error: {error}
-      <button 
+      <button
         onClick={() => navigate('/fees')}
         className="block mx-auto mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
       >
@@ -173,14 +179,14 @@ const ProcessPayment = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn">
       <div className="flex items-center justify-between bg-white p-5 rounded-xl shadow-md">
-        <button 
+        <button
           onClick={() => navigate(`/fees/student/${studentId}`)}
           className="flex items-center gap-2 text-gray-600 hover:text-[#2C3E50] transition-all duration-200 font-medium hover:gap-3 group"
         >
-          <FaArrowLeft className="transition-transform group-hover:-translate-x-1" /> 
+          <FaArrowLeft className="transition-transform group-hover:-translate-x-1" />
           <span>Back to Fee Details</span>
         </button>
-        
+
         <div className="flex items-center gap-3">
           <FaMoneyBillWave className="text-[#2C3E50] text-2xl" />
           <h1 className="text-2xl font-bold text-[#2C3E50]">
@@ -194,9 +200,9 @@ const ProcessPayment = () => {
           <div className="bg-white p-6 rounded-xl shadow-md">
             <div className="text-center mb-6">
               {student.personalDetails?.photoUrl ? (
-                <img 
-                  src={student.personalDetails.photoUrl} 
-                  alt="Student" 
+                <img
+                  src={student.personalDetails.photoUrl}
+                  alt="Student"
                   className="w-20 h-20 rounded-full mx-auto object-cover border-4 border-[#2C3E50]"
                 />
               ) : (
@@ -214,22 +220,22 @@ const ProcessPayment = () => {
             {!isFirstPayment && feeDetails.receipt && (
               <div className="space-y-3 border-t pt-4">
                 <h4 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Fee Summary</h4>
-                
+
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Fees:</span>
                   <span className="font-semibold">₹{feeDetails.receipt.totalAmount + feeDetails.receipt.remainingAmount}</span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-gray-600">Paid:</span>
                   <span className="font-semibold text-green-600">₹{feeDetails.totalPaid}</span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-gray-600">Remaining:</span>
                   <span className="font-semibold text-orange-600">₹{remainingAmount}</span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-gray-600">Installments:</span>
                   <span className="font-semibold">{feeDetails.payments?.length || 0}</span>
@@ -318,11 +324,10 @@ const ProcessPayment = () => {
                       key={mode}
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, paymentMode: mode }))}
-                      className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
-                        formData.paymentMode === mode
-                          ? 'bg-[#2C3E50] text-white border-[#2C3E50]'
-                          : 'bg-white text-gray-600 border-gray-300 hover:border-[#2C3E50]'
-                      }`}
+                      className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all ${formData.paymentMode === mode
+                        ? 'bg-[#2C3E50] text-white border-[#2C3E50]'
+                        : 'bg-white text-gray-600 border-gray-300 hover:border-[#2C3E50]'
+                        }`}
                     >
                       {mode}
                     </button>
@@ -360,7 +365,8 @@ const ProcessPayment = () => {
                 />
               </div>
 
-              {student.contact?.email && (
+              {/* Email status banner */}
+              {student.contact?.email ? (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3 text-green-700">
                   <FaCheckCircle className="text-green-500 flex-shrink-0" />
                   <div className="text-sm">
@@ -368,11 +374,21 @@ const ProcessPayment = () => {
                     <p>A receipt will be automatically sent to <span className="font-mono">{student.contact.email}</span></p>
                   </div>
                 </div>
-              )}
-
-              {!student.contact?.email && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-700 text-sm">
-                  <span className="font-semibold">No email configured.</span> Receipt won't be sent automatically.
+              ) : (
+                <div className="flex items-start gap-3 bg-amber-50 border border-amber-300 rounded-lg p-4">
+                  <FaExclamationTriangle className="text-amber-500 text-xl flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-amber-800">Email address missing — payment blocked</p>
+                    <p className="text-sm text-amber-700 mt-0.5">
+                      A parent email is required to send the fee receipt. Update the student profile before processing a payment.
+                    </p>
+                  </div>
+                  <Link
+                    to={`/students/${studentId}?edit=true`}
+                    className="flex-shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    Update Profile
+                  </Link>
                 </div>
               )}
 
@@ -386,19 +402,22 @@ const ProcessPayment = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="flex-1 px-6 py-3 bg-[#2C3E50] text-white rounded-lg hover:bg-[#34495E] transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                  disabled={submitting || !student.contact?.email}
+                  className={`flex-1 px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors
+                    ${!student.contact?.email
+                      ? 'bg-amber-100 text-amber-600 border border-amber-300 cursor-not-allowed'
+                      : 'bg-[#2C3E50] text-white hover:bg-[#34495E] disabled:opacity-50'
+                    }`}
                 >
                   {submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                       Processing...
                     </>
+                  ) : !student.contact?.email ? (
+                    <><FaExclamationTriangle /> Email Required</>
                   ) : (
-                    <>
-                      <FaSave />
-                      Record Payment
-                    </>
+                    <><FaSave /> Record Payment</>
                   )}
                 </button>
               </div>

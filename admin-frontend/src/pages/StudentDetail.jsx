@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { getStudentById, updateStudent, deleteStudent, assignBatch } from '../services/studentService';
 import { getAllBatches } from '../services/batchService';
@@ -60,7 +60,18 @@ const StudentDetail = () => {
   const [attendanceStats, setAttendanceStats] = useState(null);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
 
+  const location = useLocation();
+
   useEffect(() => { fetchStudent(); }, [id]);
+
+  // Auto-open edit mode when redirected with ?edit=true (e.g. from fee pages)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('edit') === 'true') {
+      setActiveTab('profile');
+      setIsEditing(true);
+    }
+  }, [location.search]);
 
   const fetchStudent = async () => {
     setLoading(true);
@@ -211,9 +222,9 @@ const StudentDetail = () => {
 
   const attendancePieData = attendanceStats
     ? [
-        { name: 'Present', value: attendanceStats.totalPresent },
-        { name: 'Absent', value: attendanceStats.totalAbsent },
-      ]
+      { name: 'Present', value: attendanceStats.totalPresent },
+      { name: 'Absent', value: attendanceStats.totalAbsent },
+    ]
     : [];
 
   // Last 30 attendance records for bar chart
@@ -298,7 +309,7 @@ const StudentDetail = () => {
           <h1 className="text-2xl font-bold">{pd.fullName || 'No Name'}</h1>
           <div className="flex flex-wrap gap-3 mt-2 justify-center sm:justify-start text-sm">
             <span className="bg-white/20 px-3 py-1 rounded-full">Standard {student.standard || 'N/A'}</span>
-            <span className="bg-white/20 px-3 py-1 rounded-full">Roll #{student.rollno || 'N/A'}</span>
+            <span className="bg-white/20 px-3 py-1 rounded-full">Roll no: {student.rollno || 'N/A'}</span>
             <span className={`px-3 py-1 rounded-full font-semibold ${student.status === 'Admitted' ? 'bg-green-400/30' : 'bg-red-400/30'}`}>
               {student.status}
             </span>
@@ -323,11 +334,10 @@ const StudentDetail = () => {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`flex items-center gap-2 px-5 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-all ${
-                  activeTab === tab.id
-                    ? 'border-[#2C3E50] text-[#2C3E50] bg-blue-50/50'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`flex items-center gap-2 px-5 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-all ${activeTab === tab.id
+                  ? 'border-[#2C3E50] text-[#2C3E50] bg-blue-50/50'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  }`}
               >
                 <Icon className="text-base" /> {tab.label}
               </button>
@@ -346,6 +356,7 @@ const StudentDetail = () => {
                   <h3 className="font-bold text-[#2C3E50] mb-4 flex items-center gap-2"><FaIdCard /> Personal</h3>
                   <div className="space-y-3 text-sm">
                     {[
+                      { label: 'Roll No', name: 'rollno', type: 'number', val: student.rollno || 'N/A' },
                       { label: 'Date of Birth', name: 'dob', type: 'date', val: pd.dob ? new Date(pd.dob).toLocaleDateString() : 'N/A' },
                       { label: 'Gender', name: 'gender', type: 'select', opts: ['Male', 'Female', 'Other'], val: pd.gender || 'N/A' },
                       { label: 'Caste', name: 'caste', val: pd.caste || 'N/A' },

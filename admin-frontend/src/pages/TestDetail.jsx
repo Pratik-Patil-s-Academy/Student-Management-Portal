@@ -10,9 +10,11 @@ import { getBatchById } from '../services/batchService';
 import {
   FaArrowLeft, FaCalendarAlt, FaGraduationCap, FaBook,
   FaChartBar, FaEdit, FaSave, FaTimes, FaTrash,
-  FaTrophy, FaUserCheck, FaUserTimes, FaPercent
+  FaTrophy, FaUserCheck, FaUserTimes, FaPercent, FaDownload, FaFileCsv, FaFilePdf
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
@@ -198,6 +200,77 @@ const TestDetail = () => {
     if (p >= 75) return 'text-green-600';
     if (p >= 40) return 'text-yellow-600';
     return 'text-red-600';
+  };
+
+  // Build ranked scores for current test
+  const getRankedScores = () => {
+    if (!test?.scores) return [];
+    const sorted = [...test.scores]
+      .sort((a, b) => {
+        if (a.attendanceStatus === 'Absent' && b.attendanceStatus !== 'Absent') return 1;
+        if (b.attendanceStatus === 'Absent' && a.attendanceStatus !== 'Absent') return -1;
+        return b.marksObtained - a.marksObtained;
+      });
+    let rank = 1;
+    return sorted.map((score, idx) => {
+      if (idx > 0 && score.attendanceStatus === 'Present' &&
+        sorted[idx - 1].attendanceStatus === 'Present' &&
+        score.marksObtained < sorted[idx - 1].marksObtained) {
+        rank = idx + 1;
+      }
+      return { ...score, rank: score.attendanceStatus === 'Absent' ? '—' : rank };
+    });
+  };
+
+  const exportTestCSV = () => {
+    if (!test?.scores?.length) return;
+    const ranked = getRankedScores();
+    const headers = ['Rank', 'Student Name', 'Roll No', 'Status', 'Marks', 'Max Marks', 'Percentage', 'Remark'];
+    const rows = ranked.map(s => [
+      s.rank,
+      s.studentId?.personalDetails?.fullName || '-',
+      s.studentId?.rollno || '-',
+      s.attendanceStatus,
+      s.attendanceStatus === 'Absent' ? '-' : s.marksObtained,
+      test.maxMarks,
+      s.attendanceStatus === 'Absent' ? '-' : ((s.marksObtained / test.maxMarks) * 100).toFixed(1) + '%',
+      s.remark || '',
+    ]);
+    // \uFEFF BOM ensures Excel reads UTF-8 correctly
+    const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${test.title}_ranks.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportTestPDF = () => {
+    if (!test?.scores?.length) return;
+    const ranked = getRankedScores();
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text(test.title, 14, 16);
+    doc.setFontSize(10);
+    doc.text(`Subject: ${test.subject} | Class: ${test.classLevel} | Date: ${formatDate(test.testDate)} | Max Marks: ${test.maxMarks}`, 14, 24);
+    autoTable(doc, {
+      startY: 30,
+      head: [['Rank', 'Student Name', 'Roll No', 'Status', 'Marks', '%', 'Remark']],
+      body: ranked.map(s => [
+        s.rank,
+        s.studentId?.personalDetails?.fullName || '-',
+        s.studentId?.rollno || '-',
+        s.attendanceStatus,
+        s.attendanceStatus === 'Absent' ? '-' : `${s.marksObtained}/${test.maxMarks}`,
+        s.attendanceStatus === 'Absent' ? '-' : ((s.marksObtained / test.maxMarks) * 100).toFixed(1) + '%',
+        s.remark || '',
+      ]),
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [44, 62, 80] },
+    });
+    doc.save(`${test.title}_ranks.pdf`);
   };
 
   if (loading) return (
@@ -397,7 +470,7 @@ const TestDetail = () => {
                 </ResponsiveContainer>
                 <div className="flex justify-center gap-4 mt-1">
                   {[{ label: 'Present', color: ATTEND_COLORS[0], val: statistics.attendance?.present },
-                    { label: 'Absent', color: ATTEND_COLORS[1], val: statistics.attendance?.absent }].map(d => (
+                  { label: 'Absent', color: ATTEND_COLORS[1], val: statistics.attendance?.absent }].map(d => (
                     <div key={d.label} className="flex items-center gap-1.5 text-xs">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }} />
                       <span className="text-gray-600">{d.label}: <strong>{d.val}</strong></span>
@@ -454,11 +527,11 @@ const TestDetail = () => {
 
       {/* Score Entry / Scores Table */}
       <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
           <h2 className="text-xl font-bold text-[#2C3E50]">
-            {isEnteringScores ? 'Enter / Edit Scores' : 'Student Scores'}
+            {isEnteringScores ? 'Enter / Edit Scores' : 'Rank Wise Scores'}
           </h2>
-          {isEnteringScores && (
+          {isEnteringScores ? (
             <div className="flex gap-3">
               <button
                 onClick={() => setIsEnteringScores(false)}
@@ -474,7 +547,24 @@ const TestDetail = () => {
                 <FaSave /> {savingScores ? 'Saving...' : 'Save Scores'}
               </button>
             </div>
-          )}
+          ) : hasScores ? (
+            <div className="flex gap-2">
+              <button
+                onClick={exportTestCSV}
+                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-sm font-semibold transition-colors"
+                title="Download CSV"
+              >
+                <FaDownload /> CSV
+              </button>
+              <button
+                onClick={exportTestPDF}
+                className="flex items-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-semibold transition-colors"
+                title="Download PDF"
+              >
+                <FaDownload /> PDF
+              </button>
+            </div>
+          ) : null}
         </div>
 
         {scoreError && (
@@ -514,11 +604,10 @@ const TestDetail = () => {
                           <select
                             value={entry.attendanceStatus}
                             onChange={e => handleScoreChange(idx, 'attendanceStatus', e.target.value)}
-                            className={`border rounded-lg px-2 py-1 text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-                              entry.attendanceStatus === 'Present'
-                                ? 'bg-green-50 text-green-700 border-green-200'
-                                : 'bg-red-50 text-red-700 border-red-200'
-                            }`}
+                            className={`border rounded-lg px-2 py-1 text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${entry.attendanceStatus === 'Present'
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : 'bg-red-50 text-red-700 border-red-200'
+                              }`}
                           >
                             <option value="Present">Present</option>
                             <option value="Absent">Absent</option>
@@ -573,7 +662,7 @@ const TestDetail = () => {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 text-left">
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide rounded-l-lg">#</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide rounded-l-lg">Rank</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Student</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Roll No</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
@@ -583,51 +672,42 @@ const TestDetail = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {[...test.scores]
-                      .sort((a, b) => b.marksObtained - a.marksObtained)
-                      .map((score, idx) => {
-                        const pct = score.attendanceStatus === 'Present'
-                          ? ((score.marksObtained / test.maxMarks) * 100).toFixed(1)
-                          : null;
-                        return (
-                          <tr key={score._id || idx} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-4 py-3 text-gray-400 font-medium">{idx + 1}</td>
-                            <td className="px-4 py-3 font-semibold text-gray-800">
-                              {score.studentId?.personalDetails?.fullName || '—'}
-                            </td>
-                            <td className="px-4 py-3 text-gray-500">
-                              {score.studentId?.rollno || '—'}
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                score.attendanceStatus === 'Present'
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-red-100 text-red-700'
+                    {getRankedScores().map((score, idx) => {
+                      const pct = score.attendanceStatus === 'Present'
+                        ? ((score.marksObtained / test.maxMarks) * 100).toFixed(1)
+                        : null;
+                      const isTop3 = score.attendanceStatus === 'Present' && typeof score.rank === 'number' && score.rank <= 3;
+                      const rankDisplay = score.rank === 1 ? '🥇' : score.rank === 2 ? '🥈' : score.rank === 3 ? '🥉' : score.rank;
+                      return (
+                        <tr key={score._id || idx} className={`hover:bg-gray-50 transition-colors ${isTop3 ? 'bg-yellow-50/40' : ''}`}>
+                          <td className="px-4 py-3 font-bold text-gray-700 text-base">{rankDisplay}</td>
+                          <td className="px-4 py-3 font-semibold text-gray-800">
+                            {score.studentId?.personalDetails?.fullName || '—'}
+                          </td>
+                          <td className="px-4 py-3 text-gray-500">{score.studentId?.rollno || '—'}</td>
+                          <td className="px-4 py-3">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${score.attendanceStatus === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                               }`}>
-                                {score.attendanceStatus === 'Present'
-                                  ? <FaUserCheck className="text-xs" />
-                                  : <FaUserTimes className="text-xs" />}
-                                {score.attendanceStatus}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 font-bold text-gray-800">
-                              {score.attendanceStatus === 'Absent' ? (
-                                <span className="text-gray-400 font-normal">—</span>
-                              ) : (
-                                <span>{score.marksObtained} <span className="text-gray-400 font-normal text-xs">/ {test.maxMarks}</span></span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              {pct !== null ? (
-                                <span className={`font-bold ${getPercentageColor(pct)}`}>{pct}%</span>
-                              ) : (
-                                <span className="text-gray-400">—</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-gray-500 text-xs">{score.remark || '—'}</td>
-                          </tr>
-                        );
-                      })}
+                              {score.attendanceStatus === 'Present' ? <FaUserCheck className="text-xs" /> : <FaUserTimes className="text-xs" />}
+                              {score.attendanceStatus}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-bold text-gray-800">
+                            {score.attendanceStatus === 'Absent'
+                              ? <span className="text-gray-400 font-normal">—</span>
+                              : <span>{score.marksObtained} <span className="text-gray-400 font-normal text-xs">/ {test.maxMarks}</span></span>
+                            }
+                          </td>
+                          <td className="px-4 py-3">
+                            {pct !== null
+                              ? <span className={`font-bold ${getPercentageColor(pct)}`}>{pct}%</span>
+                              : <span className="text-gray-400">—</span>
+                            }
+                          </td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{score.remark || '—'}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

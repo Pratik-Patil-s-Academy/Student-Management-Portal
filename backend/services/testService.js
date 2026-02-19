@@ -202,9 +202,74 @@ export const fetchStudentTestHistory = async (studentId) => {
   };
 };
 
+export const getOverallPerformance = async ({ limit = 10, classLevel, batchId } = {}) => {
+  const filter = {};
+  if (classLevel) filter.classLevel = classLevel;
+  if (batchId) filter.applicableBatches = batchId;
+
+  // Get last N tests sorted by date desc
+  const tests = await Test.find(filter)
+    .populate('scores.studentId', 'personalDetails.fullName rollno')
+    .sort({ testDate: -1 })
+    .limit(Number(limit));
+
+  if (tests.length === 0) return { tests: [], students: [] };
+
+  // Aggregate per student
+  const studentMap = new Map();
+  for (const test of tests) {
+    for (const score of test.scores) {
+      if (!score.studentId) continue;
+      const sid = score.studentId._id.toString();
+      if (!studentMap.has(sid)) {
+        studentMap.set(sid, {
+          studentId: sid,
+          name: score.studentId.personalDetails?.fullName || '—',
+          rollno: score.studentId.rollno || '—',
+          testsAppeared: 0,
+          totalMarksObtained: 0,
+          totalMaxMarks: 0,
+          scores: [],
+        });
+      }
+      const entry = studentMap.get(sid);
+      if (score.attendanceStatus === 'Present') {
+        entry.testsAppeared += 1;
+        entry.totalMarksObtained += score.marksObtained;
+        entry.totalMaxMarks += test.maxMarks;
+      }
+      entry.scores.push({
+        testId: test._id,
+        title: test.title,
+        subject: test.subject,
+        testDate: test.testDate,
+        maxMarks: test.maxMarks,
+        marksObtained: score.marksObtained,
+        attendanceStatus: score.attendanceStatus,
+      });
+    }
+  }
+
+  const students = Array.from(studentMap.values()).map(s => ({
+    ...s,
+    percentage: s.totalMaxMarks > 0
+      ? ((s.totalMarksObtained / s.totalMaxMarks) * 100).toFixed(2)
+      : '0.00',
+  }));
+
+  // Rank by totalMarksObtained desc
+  students.sort((a, b) => b.totalMarksObtained - a.totalMarksObtained);
+  students.forEach((s, i) => { s.rank = i + 1; });
+
+  return {
+    tests: tests.map(t => ({ _id: t._id, title: t.title, subject: t.subject, testDate: t.testDate, maxMarks: t.maxMarks })),
+    students,
+  };
+};
+
 export const deleteTestById = async (testId) => {
   const test = await Test.findById(testId);
-  
+
   if (!test) {
     throw new Error('Test not found');
   }

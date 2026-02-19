@@ -7,8 +7,10 @@ import {
   getAllTests,
   getStudentTestHistory,
   deleteTest,
-  getTestStatistics
+  getTestStatistics,
+  getOverallPerformance
 } from '../controllers/testController.js';
+
 
 const router = express.Router();
 
@@ -159,6 +161,9 @@ router.post('/create', isAuth, createTest);
  *         description: Internal server error
  */
 router.get('/all', isAuth, getAllTests);
+
+// Overall performance across last N tests - must be BEFORE /:testId
+router.get('/performance/overall', isAuth, getOverallPerformance);
 
 /**
  * @swagger

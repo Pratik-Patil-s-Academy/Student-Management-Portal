@@ -17,35 +17,35 @@ const numberToWords = (num) => {
   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
   const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
   const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-  
+
   if (num === 0) return 'Zero';
-  
+
   let result = '';
-  
+
   // Handle crores
   if (num >= 10000000) {
     result += numberToWords(Math.floor(num / 10000000)) + ' Crore ';
     num %= 10000000;
   }
-  
+
   // Handle lakhs
   if (num >= 100000) {
     result += numberToWords(Math.floor(num / 100000)) + ' Lakh ';
     num %= 100000;
   }
-  
+
   // Handle thousands
   if (num >= 1000) {
     result += numberToWords(Math.floor(num / 1000)) + ' Thousand ';
     num %= 1000;
   }
-  
+
   // Handle hundreds
   if (num >= 100) {
     result += ones[Math.floor(num / 100)] + ' Hundred ';
     num %= 100;
   }
-  
+
   // Handle tens and ones
   if (num >= 20) {
     result += tens[Math.floor(num / 10)] + ' ';
@@ -54,122 +54,242 @@ const numberToWords = (num) => {
     result += teens[num - 10] + ' ';
     return result.trim();
   }
-  
+
   if (num > 0) {
     result += ones[num] + ' ';
   }
-  
+
   return result.trim();
 };
 
-// Generate HTML email template for installment receipt
+// Generate HTML email template for installment receipt (table-based for email client compatibility)
 const generateInstallmentReceiptHTML = (student, installment, totalPaidSoFar, remainingAmount) => {
-  const currentDate = new Date().toLocaleDateString('en-IN');
+  const currentDate = new Date().toLocaleDateString('en-IN', {
+    day: '2-digit', month: 'long', year: 'numeric'
+  });
   const amountInWords = numberToWords(installment.amount);
-  
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      body { font-family: Arial, sans-serif; margin: 20px; }
-      .receipt-container { max-width: 600px; margin: 0 auto; border: 2px solid #333; }
-      .header { background-color: #f0f8ff; padding: 15px; text-align: center; border-bottom: 1px solid #333; }
-      .academy-name { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
-      .academy-details { font-size: 14px; color: #666; }
-      .receipt-title { float: right; border: 2px solid #333; padding: 10px; border-radius: 10px; margin-top: -10px; }
-      .content { padding: 20px; }
-      .row { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-      .label { font-weight: bold; }
-      .value { border-bottom: 1px solid #333; min-width: 200px; padding: 2px 5px; }
-      .amount-section { margin: 20px 0; }
-      .fee-table { float: right; border: 1px solid #333; }
-      .fee-table th, .fee-table td { border: 1px solid #333; padding: 8px 15px; text-align: left; }
-      .signature { text-align: right; margin-top: 40px; }
-      .footer { text-align: center; margin-top: 30px; font-style: italic; color: #666; }
-    </style>
-  </head>
-  <body>
-    <div class="receipt-container">
-      <div class="header">
-        <div class="academy-name">Pratik Patil's Maths Academy</div>
-        <div class="academy-details">Rajarampuri, Kolhapur (7741814181)</div>
-        <div class="receipt-title">Receipt</div>
-      </div>
-      
-      <div class="content">
-        <div class="row">
-          <span>No.: <span class="value">${installment.installmentReceiptNumber}</span></span>
-          <span>Date: <span class="value">${currentDate}</span></span>
-        </div>
-        
-        <div class="fee-table" style="float: right; margin-bottom: 20px;">
-          <table>
-            <tr>
-              <th>Total Fees</th>
-              <td>₹${totalPaidSoFar + remainingAmount}</td>
-            </tr>
-            <tr>
-              <th>Fees Paid</th>
-              <td>₹${totalPaidSoFar}</td>
-            </tr>
-            <tr>
-              <th>Remaining</th>
-              <td>₹${remainingAmount}</td>
-            </tr>
-          </table>
-        </div>
-        
-        <div class="row">
-          <span class="label">Received from:</span>
-          <span class="value">${student.personalDetails.fullName}</span>
-        </div>
-        
-        <div class="row">
-          <span class="label">Sum of Rupees:</span>
-          <span class="value">${amountInWords} Only</span>
-        </div>
-        
-        <div class="row">
-          <span>Rs. <span class="value">₹${installment.amount}</span></span>
-          <span>Mode of payment: <span class="value">${installment.paymentMode}</span></span>
-        </div>
-        
-        <div class="row">
-          <span class="label">Details:</span>
-          <span class="value">${installment.paymentNumber}${getOrdinalSuffix(installment.paymentNumber)} Fees</span>
-        </div>
-        
-        ${installment.transactionId ? `
-        <div class="row">
-          <span class="label">Transaction ID:</span>
-          <span class="value">${installment.transactionId}</span>
-        </div>
-        ` : ''}
-        
-        ${installment.remarks ? `
-        <div class="row">
-          <span class="label">Remarks:</span>
-          <span class="value">${installment.remarks}</span>
-        </div>
-        ` : ''}
-        
-        <div class="signature">
-          <div style="border-top: 1px solid #333; width: 200px; margin-left: auto; padding-top: 10px;">
-            Signature & Seal
-          </div>
-        </div>
-      </div>
-      
-      <div class="footer">
-        <p>Thank you for your payment. Keep this receipt for your records.</p>
-        <p>For any queries, please contact: 7741814181</p>
-      </div>
-    </div>
-  </body>
-  </html>
-  `;
+  const totalFees = totalPaidSoFar + remainingAmount;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fee Receipt</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;">
+
+  <!-- Outer wrapper -->
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f4;padding:20px 0;">
+    <tr>
+      <td align="center">
+
+        <!-- Receipt card -->
+        <table width="620" cellpadding="0" cellspacing="0" border="0"
+          style="background-color:#ffffff;border:2px solid #2C3E50;border-radius:6px;overflow:hidden;max-width:620px;">
+
+          <!-- ── Header ── -->
+          <tr>
+            <td align="center" bgcolor="#2C3E50"
+              style="padding:20px 30px;background-color:#2C3E50;">
+              <p style="margin:0;font-size:22px;font-weight:bold;color:#ffffff;letter-spacing:1px;">
+                Pratik Patil's Maths Academy
+              </p>
+              <p style="margin:6px 0 0;font-size:13px;color:#b0c4d8;">
+                Rajarampuri, Kolhapur &nbsp;|&nbsp; Contact: 7741814181
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── Title bar ── -->
+          <tr>
+            <td align="center" bgcolor="#f0f4f8"
+              style="padding:10px;background-color:#f0f4f8;border-bottom:1px solid #dce3ea;">
+              <p style="margin:0;font-size:15px;font-weight:bold;color:#2C3E50;letter-spacing:2px;">
+                FEE RECEIPT
+              </p>
+            </td>
+          </tr>
+
+          <!-- ── Receipt No / Date ── -->
+          <tr>
+            <td style="padding:14px 30px;border-bottom:1px solid #e8edf2;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-size:13px;color:#444;">
+                    <b>Receipt No:</b>&nbsp;
+                    <span style="font-family:monospace;font-size:13px;color:#2C3E50;">
+                      ${installment.installmentReceiptNumber}
+                    </span>
+                  </td>
+                  <td align="right" style="font-size:13px;color:#444;">
+                    <b>Date:</b>&nbsp;${currentDate}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Student Info ── -->
+          <tr>
+            <td bgcolor="#f9fafb" style="padding:14px 30px;background-color:#f9fafb;border-bottom:1px solid #e8edf2;">
+              <p style="margin:0 0 8px;font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;">
+                Student Information
+              </p>
+              <table width="100%" cellpadding="4" cellspacing="0" border="0">
+                <tr>
+                  <td width="50%" style="font-size:13px;color:#555;">
+                    <b style="color:#333;">Name:</b>&nbsp;${student.personalDetails.fullName}
+                  </td>
+                  <td width="50%" style="font-size:13px;color:#555;">
+                    <b style="color:#333;">Roll No:</b>&nbsp;${student.rollno || 'N/A'}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size:13px;color:#555;">
+                    <b style="color:#333;">Standard:</b>&nbsp;${student.standard || 'N/A'}
+                  </td>
+                  <td style="font-size:13px;color:#555;">
+                    <b style="color:#333;">Contact:</b>&nbsp;${student.contact?.parentMobile || 'N/A'}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Payment Details ── -->
+          <tr>
+            <td style="padding:14px 30px;border-bottom:1px solid #e8edf2;">
+              <p style="margin:0 0 10px;font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;">
+                Payment Details
+              </p>
+
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-size:13px;color:#555;padding:4px 0;">
+                    <b style="color:#333;">Installment:</b>&nbsp;
+                    ${installment.paymentNumber}${getOrdinalSuffix(installment.paymentNumber)} Payment
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size:13px;color:#555;padding:4px 0;">
+                    <b style="color:#333;">Amount Paid:</b>&nbsp;
+                    <span style="font-size:15px;font-weight:bold;color:#2C3E50;">&#8377;${installment.amount}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size:13px;color:#555;padding:4px 0;">
+                    <b style="color:#333;">Amount in Words:</b>&nbsp;${amountInWords} Rupees Only
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size:13px;color:#555;padding:4px 0;">
+                    <b style="color:#333;">Mode of Payment:</b>&nbsp;${installment.paymentMode}
+                  </td>
+                </tr>
+                ${installment.transactionId ? `
+                <tr>
+                  <td style="font-size:13px;color:#555;padding:4px 0;">
+                    <b style="color:#333;">Transaction ID:</b>&nbsp;${installment.transactionId}
+                  </td>
+                </tr>` : ''}
+                ${installment.remarks ? `
+                <tr>
+                  <td style="font-size:13px;color:#555;padding:4px 0;">
+                    <b style="color:#333;">Remarks:</b>&nbsp;${installment.remarks}
+                  </td>
+                </tr>` : ''}
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Fee Summary Table ── -->
+          <tr>
+            <td bgcolor="#f9fafb" style="padding:14px 30px;background-color:#f9fafb;border-bottom:1px solid #e8edf2;">
+              <p style="margin:0 0 10px;font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;">
+                Fee Summary
+              </p>
+              <table width="100%" cellpadding="8" cellspacing="0" border="0"
+                style="border:1px solid #dce3ea;border-radius:4px;">
+                <tr style="background-color:#eef2f7;">
+                  <th align="left"
+                    style="font-size:12px;font-weight:bold;color:#555;border-bottom:1px solid #dce3ea;padding:8px 12px;">
+                    Description
+                  </th>
+                  <th align="right"
+                    style="font-size:12px;font-weight:bold;color:#555;border-bottom:1px solid #dce3ea;padding:8px 12px;">
+                    Amount
+                  </th>
+                </tr>
+                <tr>
+                  <td style="font-size:13px;color:#444;padding:8px 12px;border-bottom:1px solid #eee;">
+                    Total Course Fees
+                  </td>
+                  <td align="right"
+                    style="font-size:13px;color:#444;padding:8px 12px;border-bottom:1px solid #eee;">
+                    &#8377;${totalFees}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size:13px;color:#27ae60;padding:8px 12px;border-bottom:1px solid #eee;">
+                    Total Paid (including this payment)
+                  </td>
+                  <td align="right"
+                    style="font-size:13px;font-weight:bold;color:#27ae60;padding:8px 12px;border-bottom:1px solid #eee;">
+                    &#8377;${totalPaidSoFar}
+                  </td>
+                </tr>
+                <tr style="background-color:#fff9e6;">
+                  <td style="font-size:13px;color:#d35400;padding:8px 12px;font-weight:bold;">
+                    Remaining Balance
+                  </td>
+                  <td align="right"
+                    style="font-size:13px;font-weight:bold;color:#d35400;padding:8px 12px;">
+                    &#8377;${remainingAmount}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Signature ── -->
+          <tr>
+            <td style="padding:20px 30px;border-bottom:1px solid #e8edf2;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="font-size:12px;color:#999;">
+                    <p style="margin:0;">This is a computer-generated receipt.</p>
+                    <p style="margin:4px 0 0;">Thank you for your payment.</p>
+                  </td>
+                  <td align="right" width="180">
+                    <div style="border-top:1px solid #555;padding-top:6px;text-align:center;">
+                      <p style="margin:0;font-size:12px;color:#555;">Authorised Signature</p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Footer ── -->
+          <tr>
+            <td align="center" bgcolor="#f0f4f8"
+              style="padding:12px 30px;background-color:#f0f4f8;">
+              <p style="margin:0;font-size:12px;color:#888;font-style:italic;">
+                For any queries, please contact: 7741814181
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        <!-- /Receipt card -->
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>`;
 };
 
 // Helper function to get ordinal suffix
@@ -227,9 +347,9 @@ export const sendInstallmentReceiptEmail = async (student, installment, totalPai
 
     const result = await transporter.sendMail(mailOptions);
     console.log(`Email sent successfully to ${student.contact.email} for installment ${installment.paymentNumber}`);
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       messageId: result.messageId,
       recipient: student.contact.email,
       receiptNumber: installment.installmentReceiptNumber
@@ -237,8 +357,8 @@ export const sendInstallmentReceiptEmail = async (student, installment, totalPai
 
   } catch (error) {
     console.error('Error sending email:', error);
-    return { 
-      success: false, 
+    return {
+      success: false,
       message: error.message,
       recipient: student.contact?.email
     };
@@ -248,7 +368,7 @@ export const sendInstallmentReceiptEmail = async (student, installment, totalPai
 // Send bulk installment receipts (for multiple students)
 export const sendBulkInstallmentReceipts = async (studentInstallmentData) => {
   const results = [];
-  
+
   for (const data of studentInstallmentData) {
     const result = await sendInstallmentReceiptEmail(
       data.student,
@@ -262,6 +382,6 @@ export const sendBulkInstallmentReceipts = async (studentInstallmentData) => {
       ...result
     });
   }
-  
+
   return results;
 };

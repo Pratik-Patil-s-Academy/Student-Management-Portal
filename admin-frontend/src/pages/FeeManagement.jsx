@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getAllStudentsWithFees, getFeeStructures, upsertFeeStructure } from '../services/feeService';
-import { FaSearch, FaEye, FaMoneyBillWave, FaFilter, FaPlusCircle, FaReceipt, FaCog, FaTimes, FaEdit } from 'react-icons/fa';
+import { FaSearch, FaEye, FaMoneyBillWave, FaFilter, FaPlusCircle, FaReceipt, FaCog, FaTimes, FaEdit, FaExclamationTriangle } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import {
   PieChart, Pie, Cell, BarChart, Bar,
@@ -104,7 +104,7 @@ const FeeManagement = () => {
 
   const filteredStudents = students.filter(student => {
     if (searchTerm && !student.personalDetails?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !student.rollno?.toString().includes(searchTerm)) return false;
+      !student.rollno?.toString().includes(searchTerm)) return false;
     if (standardFilter && student.standard !== standardFilter) return false;
     if (statusFilter) {
       const status = student.feeInfo?.feeStatus?.toLowerCase() || 'pending';
@@ -276,7 +276,14 @@ const FeeManagement = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div>{student.contact?.parentMobile || 'N/A'}</div>
-                        <div className="text-gray-500">{student.contact?.email || 'No email'}</div>
+                        {student.contact?.email ? (
+                          <div className="text-gray-500 text-xs">{student.contact.email}</div>
+                        ) : (
+                          <div className="flex items-center gap-1 text-amber-600 text-xs font-semibold mt-0.5">
+                            <FaExclamationTriangle />
+                            No email — update profile
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {structure ? (
@@ -298,16 +305,29 @@ const FeeManagement = () => {
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <Link to={`/fees/student/${student._id}`} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all border border-blue-200 hover:border-blue-600">
-                          <FaEye /> View
-                        </Link>
-                        <Link to={`/fees/payment/${student._id}`} className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg transition-all border border-green-200 hover:border-green-600">
-                          <FaPlusCircle /> Pay
-                        </Link>
-                        <Link to={`/fees/receipt/${student._id}`} className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg transition-all border border-purple-200 hover:border-purple-600">
-                          <FaReceipt /> Receipt
-                        </Link>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <Link to={`/fees/student/${student._id}`} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all border border-blue-200 hover:border-blue-600">
+                            <FaEye /> View
+                          </Link>
+                          {student.contact?.email ? (
+                            <>
+                              <Link to={`/fees/payment/${student._id}`} className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg transition-all border border-green-200 hover:border-green-600">
+                                <FaPlusCircle /> Pay
+                              </Link>
+                              <Link to={`/fees/receipt/${student._id}`} className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg transition-all border border-purple-200 hover:border-purple-600">
+                                <FaReceipt /> Receipt
+                              </Link>
+                            </>
+                          ) : (
+                            <Link
+                              to={`/students/${student._id}?edit=true`}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 text-amber-700 border border-amber-300 rounded-lg text-xs font-semibold hover:bg-amber-100 transition-colors"
+                            >
+                              <FaExclamationTriangle /> Add Email
+                            </Link>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -384,7 +404,7 @@ const FeeManagement = () => {
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="std" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => v >= 1000 ? `₹${(v/1000).toFixed(0)}k` : `₹${v}`} />
+                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => v >= 1000 ? `₹${(v / 1000).toFixed(0)}k` : `₹${v}`} />
                 <Tooltip formatter={(v, n) => [`₹${v.toLocaleString('en-IN')}`, n === 'collected' ? 'Collected' : 'Outstanding']} />
                 <Legend formatter={n => n === 'collected' ? 'Collected' : 'Outstanding'} />
                 <Bar dataKey="collected" name="collected" fill="#22c55e" radius={[3, 3, 0, 0]} />

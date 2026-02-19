@@ -66,3 +66,12 @@ export const getStudentTestHistory = async (studentId) => {
         throw error.response?.data || error;
     }
 };
+
+export const getOverallPerformance = async (params = {}) => {
+    try {
+        const response = await api.get('/api/tests/performance/overall', { params });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error;
+    }
+};
