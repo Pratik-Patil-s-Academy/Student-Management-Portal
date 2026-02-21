@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.post('/api/admin/login', { email, password });
       if (response.data.success) {
+        localStorage.setItem('adminToken', response.data.token);
         setAdmin(response.data.admin);
         return { success: true };
       }
@@ -49,6 +50,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await api.post('/api/admin/logout');
+      localStorage.removeItem('adminToken');
       setAdmin(null);
     } catch (error) {
       console.error('Logout failed:', error);

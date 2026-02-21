@@ -2,11 +2,15 @@ import jwt from "jsonwebtoken";
 import { Admin } from "../models/adminModel.js"; //need to change 
 export const isAuth = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
-    if (!token)
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(403).json({
         message: "Please Login",
       });
+    }
+
+    const token = authHeader.split(' ')[1];
 
     const decodedData = jwt.verify(token, process.env.JWT_SEC);
 
