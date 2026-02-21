@@ -17,8 +17,8 @@ export default defineConfig({
         name: 'Student Management Portal Admin',
         short_name: 'SMP Admin',
         description: 'Admin Portal for Student Management System',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        theme_color: '#2C3E50',
+        background_color: '#2C3E50',
         display: 'standalone',
         icons: [
           {
