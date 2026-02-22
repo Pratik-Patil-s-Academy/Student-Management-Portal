@@ -423,7 +423,11 @@ const Students = () => {
         {/* Mobile Cards */}
         <div className="md:hidden space-y-4 p-4 bg-gray-50">
           {filteredStudents.map((student) => (
-            <div key={student._id} className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 border border-gray-100">
+            <Link
+              key={student._id}
+              to={`/students/${student._id}`}
+              className="block bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 border border-gray-100 active:scale-[0.98]"
+            >
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-3">
                   {student.personalDetails?.photoUrl ? (
@@ -440,18 +444,17 @@ const Students = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
                   <div className={`flex items-center gap-2 px-3 py-1 text-xs font-bold rounded-full shadow-sm border 
-                              ${student.status === 'Admitted' ? 'bg-green-100 text-green-800 border-green-200' :
+                               ${student.status === 'Admitted' ? 'bg-green-100 text-green-800 border-green-200' :
                       student.status === 'Dropped' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-gray-100 text-gray-800 border-gray-200'}`}>
                     <span>{student.status}</span>
-                    <Link
-                      to={`/students/${student._id}`}
+                    <div
                       className={`p-1 rounded-full transition-colors flex items-center justify-center
                         ${student.status === 'Admitted' ? 'bg-green-200 hover:bg-green-300 text-green-900' :
                           student.status === 'Dropped' ? 'bg-red-200 hover:bg-red-300 text-red-900' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'}`}
                       title="View Profile"
                     >
                       <FaEye className="text-[10px]" />
-                    </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -460,7 +463,7 @@ const Students = () => {
                 <p><span className="font-semibold text-gray-800">Standard:</span> <span className="text-[#2C3E50] font-bold">{student.standard}</span></p>
                 <p><span className="font-semibold text-gray-800">Batch:</span> {student.batch && student.batch.name ? <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-xs font-bold">{student.batch.name}</span> : <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs font-medium italic">Unassigned</span>}</p>
               </div>
-            </div>
+            </Link>
           ))}
           {filteredStudents.length === 0 && (
             <div className="text-center text-gray-500 py-12 bg-white rounded-xl">
