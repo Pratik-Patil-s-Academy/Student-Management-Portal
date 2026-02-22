@@ -100,6 +100,18 @@ export const getAttendanceStats = TryCatch(async (req, res) => {
   });
 });
 
+export const getAllAttendance = TryCatch(async (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  const attendance = await attendanceService.fetchAllAttendance(startDate, endDate);
+
+  res.status(200).json({
+    success: true,
+    count: attendance.length,
+    attendance
+  });
+});
+
 export const getAllAttendanceStatsByBatch = TryCatch(async (req, res) => {
   const { batchId } = req.params;
   const { startDate, endDate } = req.query;

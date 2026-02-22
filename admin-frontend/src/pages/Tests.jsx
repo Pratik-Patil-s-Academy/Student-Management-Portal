@@ -261,42 +261,48 @@ const Tests = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-wrap gap-4 items-end">
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Class Level</label>
-          <select
-            value={filterClass}
-            onChange={e => setFilterClass(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          >
-            <option value="">All Classes</option>
-            {CLASS_LEVELS.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="grid grid-cols-2 lg:flex gap-3 items-end">
+          <div className="col-span-1">
+            <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Class Level</label>
+            <select
+              value={filterClass}
+              onChange={e => setFilterClass(e.target.value)}
+              className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="">All Classes</option>
+              {CLASS_LEVELS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="col-span-1">
+            <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Subject</label>
+            <select
+              value={filterSubject}
+              onChange={e => setFilterSubject(e.target.value)}
+              className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="">All Subjects</option>
+              {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="col-span-2 lg:col-span-1 flex gap-2">
+            <button
+              onClick={handleFilterApply}
+              className="flex-1 px-3 py-1.5 bg-[#2C3E50] text-white rounded-lg text-sm font-semibold hover:bg-[#34495E] transition-colors"
+            >
+              Apply
+            </button>
+            <button
+              onClick={handleFilterReset}
+              className="flex-1 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors"
+            >
+              Reset
+            </button>
+          </div>
+          <div className="col-span-2 lg:w-auto lg:ml-auto text-sm text-gray-400 text-right">
+            {tests.length} test{tests.length !== 1 ? 's' : ''} found
+          </div>
         </div>
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Subject</label>
-          <select
-            value={filterSubject}
-            onChange={e => setFilterSubject(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          >
-            <option value="">All Subjects</option>
-            {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <button
-          onClick={handleFilterApply}
-          className="px-4 py-2 bg-[#2C3E50] text-white rounded-lg text-sm font-semibold hover:bg-[#34495E] transition-colors"
-        >
-          Apply
-        </button>
-        <button
-          onClick={handleFilterReset}
-          className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors"
-        >
-          Reset
-        </button>
-        <span className="ml-auto text-sm text-gray-400">{tests.length} test{tests.length !== 1 ? 's' : ''} found</span>
       </div>
 
       {/* Tests per Subject Chart */}

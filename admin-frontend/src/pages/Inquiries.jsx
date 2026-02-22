@@ -8,7 +8,7 @@ const Inquiries = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // URL Params for persistance
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -43,26 +43,26 @@ const Inquiries = () => {
   // Handlers for updating URL params
   const updateFilter = (key, value) => {
     setSearchParams(prev => {
-        const newParams = new URLSearchParams(prev);
-        if (value) {
-            newParams.set(key, value);
-        } else {
-            newParams.delete(key);
-        }
-        return newParams;
+      const newParams = new URLSearchParams(prev);
+      if (value) {
+        newParams.set(key, value);
+      } else {
+        newParams.delete(key);
+      }
+      return newParams;
     });
   };
 
   // Filtering and Sorting Logic
   const filteredInquiries = inquiries
     .filter(inquiry => {
-      const matchesSearch = 
+      const matchesSearch =
         inquiry.studentDetails?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        inquiry.contact?.parentMobile?.includes(searchTerm) || 
+        inquiry.contact?.parentMobile?.includes(searchTerm) ||
         inquiry.contact?.studentMobile?.includes(searchTerm);
-      
+
       const matchesStatus = statusFilter ? inquiry.status === statusFilter : true;
-      
+
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
@@ -107,7 +107,7 @@ const Inquiries = () => {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div 
+          <div
             onClick={() => updateFilter('status', '')}
             className={`bg-white p-5 rounded-xl shadow-md border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer ${!statusFilter ? 'ring-2 ring-blue-500' : ''}`}
           >
@@ -115,7 +115,7 @@ const Inquiries = () => {
             <p className="text-3xl font-bold text-gray-800 mt-2">{stats.total}</p>
             <div className="mt-2 h-1 bg-gradient-to-r from-blue-500 to-blue-300 rounded-full"></div>
           </div>
-          <div 
+          <div
             onClick={() => updateFilter('status', 'In Progress')}
             className={`bg-white p-5 rounded-xl shadow-md border-l-4 border-yellow-500 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer ${statusFilter === 'In Progress' ? 'ring-2 ring-yellow-500' : ''}`}
           >
@@ -123,16 +123,16 @@ const Inquiries = () => {
             <p className="text-3xl font-bold text-gray-800 mt-2">{stats.byStatus['In Progress'] || 0}</p>
             <div className="mt-2 h-1 bg-gradient-to-r from-yellow-500 to-yellow-300 rounded-full"></div>
           </div>
-          <div 
-             onClick={() => updateFilter('status', 'Converted')}
+          <div
+            onClick={() => updateFilter('status', 'Converted')}
             className={`bg-white p-5 rounded-xl shadow-md border-l-4 border-green-500 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer ${statusFilter === 'Converted' ? 'ring-2 ring-green-500' : ''}`}
           >
             <p className="text-gray-500 text-sm font-semibold uppercase tracking-wide">Converted</p>
             <p className="text-3xl font-bold text-gray-800 mt-2">{stats.byStatus['Converted'] || 0}</p>
             <div className="mt-2 h-1 bg-gradient-to-r from-green-500 to-green-300 rounded-full"></div>
           </div>
-          <div 
-             onClick={() => updateFilter('status', 'Follow Up Required')}
+          <div
+            onClick={() => updateFilter('status', 'Follow Up Required')}
             className={`bg-white p-5 rounded-xl shadow-md border-l-4 border-red-500 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer ${statusFilter === 'Follow Up Required' ? 'ring-2 ring-red-500' : ''}`}
           >
             <p className="text-gray-500 text-sm font-semibold uppercase tracking-wide">Action Required</p>
@@ -156,7 +156,7 @@ const Inquiries = () => {
             onChange={(e) => updateFilter('search', e.target.value)}
           />
         </div>
-        
+
         <div className="flex gap-3 w-full md:w-auto">
           <div className="relative w-1/2 md:w-auto">
             <select
@@ -226,8 +226,8 @@ const Inquiries = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link 
-                      to={`/inquiries/${inquiry._id}`} 
+                    <Link
+                      to={`/inquiries/${inquiry._id}`}
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold transition-all group-hover:gap-3"
                     >
                       <FaEye /> View
@@ -269,8 +269,8 @@ const Inquiries = () => {
                 <p><span className="font-semibold text-gray-800">Mobile:</span> {inquiry.contact?.parentMobile}</p>
                 <p><span className="font-semibold text-gray-800">Standard:</span> <span className="text-[#2C3E50] font-bold">{inquiry.standard}</span></p>
               </div>
-              <Link 
-                to={`/inquiries/${inquiry._id}`} 
+              <Link
+                to={`/inquiries/${inquiry._id}`}
                 className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-semibold shadow-md"
               >
                 <FaEye /> View Details

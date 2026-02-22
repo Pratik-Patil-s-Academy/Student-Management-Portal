@@ -187,38 +187,40 @@ const FeeManagement = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-5 rounded-xl shadow-md">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
+      <div className="bg-white p-4 rounded-xl shadow-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="relative w-full">
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search by name or roll number..."
               value={searchTerm}
               onChange={(e) => updateFilter('search', e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all"
+              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all text-sm"
             />
           </div>
-          <select
-            value={standardFilter}
-            onChange={(e) => updateFilter('standard', e.target.value)}
-            className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent"
-          >
-            <option value="">All Standards</option>
-            <option value="11">Standard 11</option>
-            <option value="12">Standard 12</option>
-            <option value="Others">Others</option>
-          </select>
-          <select
-            value={statusFilter}
-            onChange={(e) => updateFilter('status', e.target.value)}
-            className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent"
-          >
-            <option value="">All Payment Status</option>
-            <option value="paid">Fully Paid</option>
-            <option value="partial">Partially Paid</option>
-            <option value="pending">Pending</option>
-          </select>
+          <div className="grid grid-cols-2 gap-2 md:col-span-1 lg:col-span-2 md:w-auto">
+            <select
+              value={standardFilter}
+              onChange={(e) => updateFilter('standard', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent text-sm"
+            >
+              <option value="">All Standards</option>
+              <option value="11">Standard 11</option>
+              <option value="12">Standard 12</option>
+              <option value="Others">Others</option>
+            </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => updateFilter('status', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent text-sm"
+            >
+              <option value="">All Statuses</option>
+              <option value="paid">Fully Paid</option>
+              <option value="partial">Partially Paid</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -312,9 +314,15 @@ const FeeManagement = () => {
                           </Link>
                           {student.contact?.email ? (
                             <>
-                              <Link to={`/fees/payment/${student._id}`} className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg transition-all border border-green-200 hover:border-green-600">
-                                <FaPlusCircle /> Pay
-                              </Link>
+                              {feeStatus.toLowerCase() === 'paid' ? (
+                                <button disabled className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 text-gray-400 rounded-lg border border-gray-200 cursor-not-allowed">
+                                  <FaPlusCircle /> Pay
+                                </button>
+                              ) : (
+                                <Link to={`/fees/payment/${student._id}`} className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg transition-all border border-green-200 hover:border-green-600">
+                                  <FaPlusCircle /> Pay
+                                </Link>
+                              )}
                               <Link to={`/fees/receipt/${student._id}`} className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white rounded-lg transition-all border border-purple-200 hover:border-purple-600">
                                 <FaReceipt /> Receipt
                               </Link>

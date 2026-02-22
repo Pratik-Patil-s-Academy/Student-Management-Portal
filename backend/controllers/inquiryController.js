@@ -4,7 +4,7 @@ import * as inquiryService from '../services/inquiryService.js';
 
 export const createInquiry = TryCatch(async (req, res) => {
   inquiryService.validateInquiryData(req.body);
-  
+
   const inquiry = await inquiryService.createInquiryRecord(req.body);
 
   res.status(201).json({

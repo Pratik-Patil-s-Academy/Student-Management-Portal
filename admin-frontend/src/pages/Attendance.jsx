@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAttendanceByBatch, getAttendanceByDate, deleteAttendance } from '../services/attendanceService';
+import { getAllAttendance, getAttendanceByBatch, getAttendanceByDate, deleteAttendance } from '../services/attendanceService';
 import { getAllBatches } from '../services/batchService';
 import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaUsers, FaChartBar, FaFilter } from 'react-icons/fa';
 
@@ -10,7 +10,7 @@ const Attendance = () => {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Filter state
   const [selectedBatch, setSelectedBatch] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
@@ -38,7 +38,7 @@ const Attendance = () => {
     setError(null);
     try {
       let data;
-      
+
       if (selectedBatch) {
         // Fetch by batch with optional date range
         data = await getAttendanceByBatch(selectedBatch, startDate, endDate);
@@ -46,17 +46,10 @@ const Attendance = () => {
         // Fetch by specific date
         data = await getAttendanceByDate(selectedDate);
       } else {
-        // Fetch all - we'll get all batches and combine
-        const allRecords = [];
-        for (const batch of batches) {
-          const batchData = await getAttendanceByBatch(batch._id, startDate, endDate);
-          if (batchData.success) {
-            allRecords.push(...batchData.attendance);
-          }
-        }
-        data = { success: true, attendance: allRecords };
+        // Fetch all attendance records
+        data = await getAllAttendance(startDate, endDate);
       }
-      
+
       if (data.success) {
         setAttendanceRecords(data.attendance);
       }
@@ -76,8 +69,20 @@ const Attendance = () => {
     setSelectedDate('');
     setStartDate('');
     setEndDate('');
-    setTimeout(() => fetchAttendance(), 100);
   };
+
+  useEffect(() => {
+    if (!selectedBatch && !selectedDate && !startDate && !endDate && !loading) {
+      // Only trigger fetch if we cleared everything
+      // But we already have the initial load. 
+      // Actually, we should trigger fetchAttendance whenever filters change for better UX
+    }
+  }, [selectedBatch, selectedDate, startDate, endDate]);
+
+  // Better: update fetchAttendance to run when filters change or manually
+  useEffect(() => {
+    fetchAttendance();
+  }, [selectedBatch, selectedDate, startDate, endDate]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this attendance record?')) return;
@@ -91,10 +96,10 @@ const Attendance = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -121,13 +126,13 @@ const Attendance = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 className="text-4xl font-bold text-[#2C3E50]">Attendance</h1>
         <div className="flex flex-wrap gap-3">
-          <button 
+          <button
             onClick={() => navigate('/attendance/stats')}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-all transform hover:scale-105"
           >
             <FaChartBar /> View Statistics
           </button>
-          <button 
+          <button
             onClick={() => navigate('/attendance/mark')}
             className="bg-[#2C3E50] hover:bg-[#34495E] text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-all transform hover:scale-105"
           >
@@ -137,19 +142,19 @@ const Attendance = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-md p-4 md:p-6 border border-gray-100">
         <div className="flex items-center gap-2 mb-4">
-          <FaFilter className="text-gray-600" />
-          <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
+          <FaFilter className="text-gray-600 text-sm md:text-base" />
+          <h2 className="text-base md:text-lg font-semibold text-gray-800">Filters</h2>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
-            <select 
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="col-span-2 lg:col-span-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">Batch</label>
+            <select
               value={selectedBatch}
               onChange={(e) => setSelectedBatch(e.target.value)}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               <option value="">All Batches</option>
               {batches.map(batch => (
@@ -158,49 +163,49 @@ const Attendance = () => {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Specific Date</label>
-            <input 
+          <div className="col-span-2 md:col-span-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">Specific Date</label>
+            <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-            <input 
+            <label className="block text-xs font-medium text-gray-700 mb-1">Start Date</label>
+            <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-            <input 
+            <label className="block text-xs font-medium text-gray-700 mb-1">End Date</label>
+            <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
         </div>
 
-        <div className="flex gap-3 mt-4">
-          <button 
-            onClick={handleFilter}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors font-medium"
+        <div className="flex gap-2 md:gap-3 mt-4">
+          <button
+            onClick={fetchAttendance}
+            className="flex-1 lg:flex-none lg:px-6 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors font-medium text-sm md:text-base"
           >
-            Apply Filters
+            Apply
           </button>
-          <button 
+          <button
             onClick={handleClearFilters}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg transition-colors font-medium"
+            className="flex-1 lg:flex-none lg:px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg transition-colors font-medium text-sm md:text-base"
           >
-            Clear Filters
+            Clear
           </button>
         </div>
       </div>
@@ -218,7 +223,7 @@ const Attendance = () => {
           <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
             <FaCalendarAlt className="text-4xl text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">No attendance records found.</p>
-            <button 
+            <button
               onClick={() => navigate('/attendance/mark')}
               className="text-blue-600 hover:underline mt-2 text-sm font-semibold"
             >
@@ -229,8 +234,8 @@ const Attendance = () => {
           attendanceRecords.map(record => {
             const stats = calculateStats(record.students);
             return (
-              <div 
-                key={record._id} 
+              <div
+                key={record._id}
                 className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
               >
                 <div className="p-6">
@@ -242,13 +247,13 @@ const Attendance = () => {
                           <h3 className="text-xl font-bold text-gray-800 mb-2">
                             {record.batchId?.name || 'Unknown Batch'}
                           </h3>
-                          
+
                           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                             <div className="flex items-center gap-2">
                               <FaCalendarAlt className="text-blue-500" />
                               <span className="font-medium">{formatDate(record.date)}</span>
                             </div>
-                            
+
                             <div className="flex items-center gap-2">
                               <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded font-semibold text-xs">
                                 {record.subject || 'Maths'}
@@ -264,14 +269,14 @@ const Attendance = () => {
                                 <span className="font-bold text-gray-800">{stats.total}</span> Students
                               </span>
                             </div>
-                            
+
                             <div className="flex items-center gap-2">
                               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                               <span className="text-sm">
                                 <span className="font-bold text-green-700">{stats.present}</span> Present
                               </span>
                             </div>
-                            
+
                             <div className="flex items-center gap-2">
                               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                               <span className="text-sm">
@@ -280,11 +285,10 @@ const Attendance = () => {
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <span className={`text-sm font-bold ${
-                                stats.percentage >= 75 ? 'text-green-600' : 
-                                stats.percentage >= 60 ? 'text-yellow-600' : 
-                                'text-red-600'
-                              }`}>
+                              <span className={`text-sm font-bold ${stats.percentage >= 75 ? 'text-green-600' :
+                                stats.percentage >= 60 ? 'text-yellow-600' :
+                                  'text-red-600'
+                                }`}>
                                 {stats.percentage}% Attendance
                               </span>
                             </div>

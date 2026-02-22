@@ -7,7 +7,8 @@ import {
   getAttendanceById,
   updateAttendance,
   deleteAttendance,
-  getAttendanceStats
+  getAttendanceStats,
+  getAllAttendance
 } from '../controllers/attendanceController.js';
 
 const router = express.Router();
@@ -89,6 +90,33 @@ const router = express.Router();
  *         description: Internal server error
  */
 router.post('/mark', markAttendance);
+
+/**
+ * @swagger
+ * /api/attendance:
+ *   get:
+ *     summary: Get all attendance records
+ *     tags: [Attendance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: List of all attendance records
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/', getAllAttendance);
 
 
 /**

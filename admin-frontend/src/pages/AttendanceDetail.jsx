@@ -23,7 +23,7 @@ const AttendanceDetail = () => {
     setError(null);
     try {
       const data = await getAttendanceById(id);
-      
+
       if (data.success) {
         setAttendance(data.attendance);
         setSubject(data.attendance.subject || 'Maths');
@@ -41,10 +41,10 @@ const AttendanceDetail = () => {
     }
   };
 
-  const toggleStudentStatus = (studentId) => {
-    setStudents(prev => prev.map(student => 
-      student.studentId === studentId 
-        ? { ...student, status: student.status === 'Present' ? 'Absent' : 'Present' }
+  const updateStudentStatus = (studentId, status) => {
+    setStudents(prev => prev.map(student =>
+      student.studentId === studentId
+        ? { ...student, status }
         : student
     ));
   };
@@ -52,7 +52,7 @@ const AttendanceDetail = () => {
   const handleUpdate = async () => {
     setSubmitting(true);
     setError(null);
-    
+
     try {
       const updateData = {
         students: students.map(s => ({
@@ -64,7 +64,7 @@ const AttendanceDetail = () => {
 
       await updateAttendance(id, updateData);
       setSuccess(true);
-      
+
       setTimeout(() => {
         navigate('/attendance');
       }, 2000);
@@ -77,7 +77,7 @@ const AttendanceDetail = () => {
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this attendance record?')) return;
-    
+
     try {
       await deleteAttendance(id);
       navigate('/attendance');
@@ -88,10 +88,10 @@ const AttendanceDetail = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
@@ -119,7 +119,7 @@ const AttendanceDetail = () => {
       <div className="bg-red-50 text-red-700 p-6 rounded-lg border border-red-200">
         <p className="font-semibold mb-2">Error loading attendance</p>
         <p>{error}</p>
-        <button 
+        <button
           onClick={() => navigate('/attendance')}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
         >
@@ -134,7 +134,7 @@ const AttendanceDetail = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => navigate('/attendance')}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
@@ -142,7 +142,7 @@ const AttendanceDetail = () => {
           </button>
           <h1 className="text-4xl font-bold text-[#2C3E50]">Attendance Details</h1>
         </div>
-        
+
         <button
           onClick={handleDelete}
           className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
@@ -155,7 +155,7 @@ const AttendanceDetail = () => {
       {attendance && (
         <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Attendance Information</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Batch</label>
@@ -174,7 +174,7 @@ const AttendanceDetail = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Subject</label>
-              <input 
+              <input
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
@@ -228,23 +228,21 @@ const AttendanceDetail = () => {
                     <div className="flex justify-center gap-2">
                       <button
                         type="button"
-                        onClick={() => toggleStudentStatus(student.studentId)}
-                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                          student.status === 'Present'
+                        onClick={() => updateStudentStatus(student.studentId, 'Present')}
+                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Present'
                             ? 'bg-green-500 text-white hover:bg-green-600'
                             : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                        }`}
+                          }`}
                       >
                         <FaCheckCircle className="inline mr-1" /> Present
                       </button>
                       <button
                         type="button"
-                        onClick={() => toggleStudentStatus(student.studentId)}
-                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                          student.status === 'Absent'
+                        onClick={() => updateStudentStatus(student.studentId, 'Absent')}
+                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Absent'
                             ? 'bg-red-500 text-white hover:bg-red-600'
                             : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                        }`}
+                          }`}
                       >
                         <FaTimesCircle className="inline mr-1" /> Absent
                       </button>
@@ -269,23 +267,21 @@ const AttendanceDetail = () => {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => toggleStudentStatus(student.studentId)}
-                  className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                    student.status === 'Present'
+                  onClick={() => updateStudentStatus(student.studentId, 'Present')}
+                  className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Present'
                       ? 'bg-green-500 text-white'
                       : 'bg-gray-200 text-gray-600'
-                  }`}
+                    }`}
                 >
                   <FaCheckCircle className="inline mr-1" /> Present
                 </button>
                 <button
                   type="button"
-                  onClick={() => toggleStudentStatus(student.studentId)}
-                  className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                    student.status === 'Absent'
+                  onClick={() => updateStudentStatus(student.studentId, 'Absent')}
+                  className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Absent'
                       ? 'bg-red-500 text-white'
                       : 'bg-gray-200 text-gray-600'
-                  }`}
+                    }`}
                 >
                   <FaTimesCircle className="inline mr-1" /> Absent
                 </button>
@@ -316,7 +312,7 @@ const AttendanceDetail = () => {
             <div className="text-center">
               <p className="text-sm text-gray-600">Attendance %</p>
               <p className="text-2xl font-bold text-blue-600">
-                {students.length > 0 
+                {students.length > 0
                   ? ((students.filter(s => s.status === 'Present').length / students.length) * 100).toFixed(1)
                   : 0}%
               </p>

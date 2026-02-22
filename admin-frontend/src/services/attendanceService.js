@@ -10,6 +10,20 @@ export const markAttendance = async (data) => {
     }
 };
 
+// Get all attendance records with optional date filters
+export const getAllAttendance = async (startDate, endDate) => {
+    try {
+        const params = {};
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
+
+        const response = await api.get('/api/attendance', { params });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
+
 // Get attendance records by batch with optional date filters
 export const getAttendanceByBatch = async (batchId, startDate, endDate) => {
     try {

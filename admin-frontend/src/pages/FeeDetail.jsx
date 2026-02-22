@@ -157,7 +157,11 @@ const FeeDetail = () => {
           {student.contact?.email ? (
             <button
               onClick={() => navigate(`/fees/payment/${studentId}`)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg border border-green-200 hover:border-green-600 transition-all duration-200"
+              disabled={feeDetails.receipt?.feeStatus === 'Paid'}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-200 ${feeDetails.receipt?.feeStatus === 'Paid'
+                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                  : 'bg-green-50 text-green-600 hover:bg-green-600 hover:text-white border-green-200 hover:border-green-600'
+                }`}
             >
               <FaPlus />
               Add Payment

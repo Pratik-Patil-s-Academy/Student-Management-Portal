@@ -62,7 +62,7 @@ const MarkAttendance = () => {
     const batchId = e.target.value;
     const batch = batches.find(b => b._id === batchId);
     setSelectedBatch(batch);
-    
+
     if (batch && batch.students) {
       // Initialize all students as Present
       const studentAttendance = batch.students.map(student => ({
@@ -80,7 +80,7 @@ const MarkAttendance = () => {
   const handleClassChange = (e) => {
     const standard = e.target.value;
     setSelectedClass(standard);
-    
+
     if (standard) {
       // Filter students by standard
       const classStudents = allStudents.filter(s => s.standard === standard);
@@ -98,10 +98,10 @@ const MarkAttendance = () => {
     }
   };
 
-  const toggleStudentStatus = (studentId) => {
-    setStudents(prev => prev.map(student => 
-      student.studentId === studentId 
-        ? { ...student, status: student.status === 'Present' ? 'Absent' : 'Present' }
+  const updateStudentStatus = (studentId, status) => {
+    setStudents(prev => prev.map(student =>
+      student.studentId === studentId
+        ? { ...student, status }
         : student
     ));
   };
@@ -155,7 +155,7 @@ const MarkAttendance = () => {
         // Class-wise marking - create attendance record for each batch
         // Group students by batch
         const studentsByBatch = {};
-        
+
         students.forEach(student => {
           const batch = batches.find(b => b._id === student.batch);
           if (batch) {
@@ -174,7 +174,7 @@ const MarkAttendance = () => {
         });
 
         // Mark attendance for each batch using allSettled to handle partial failures
-        const promises = Object.values(studentsByBatch).map(batchData => 
+        const promises = Object.values(studentsByBatch).map(batchData =>
           markAttendance({
             batchId: batchData.batchId,
             date: date,
@@ -185,11 +185,11 @@ const MarkAttendance = () => {
         );
 
         const results = await Promise.all(promises);
-        
+
         // Check results
         const successful = results.filter(r => r.success);
         const failed = results.filter(r => !r.success);
-        
+
         if (failed.length > 0 && successful.length === 0) {
           // All failed
           const errorMsg = failed.map(f => `${f.batchName}: ${f.error}`).join('; ');
@@ -208,7 +208,7 @@ const MarkAttendance = () => {
       }
 
       setSuccess(true);
-      
+
       // Redirect after 2 seconds
       setTimeout(() => {
         navigate('/attendance');
@@ -243,7 +243,7 @@ const MarkAttendance = () => {
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <button 
+        <button
           onClick={() => navigate('/attendance')}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
@@ -257,7 +257,7 @@ const MarkAttendance = () => {
         {/* Marking Mode Selection */}
         <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Select Marking Mode</h2>
-          
+
           <div className="flex gap-6">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -270,7 +270,7 @@ const MarkAttendance = () => {
               />
               <span className="text-gray-700 font-medium">Mark by Batch</span>
             </label>
-            
+
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
@@ -290,14 +290,14 @@ const MarkAttendance = () => {
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             {markingMode === 'batch' ? 'Select Batch & Date' : 'Select Class & Date'}
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {markingMode === 'batch' ? (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Batch <span className="text-red-500">*</span>
                 </label>
-                <select 
+                <select
                   value={selectedBatch?._id || ''}
                   onChange={handleBatchChange}
                   required
@@ -316,7 +316,7 @@ const MarkAttendance = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Class/Standard <span className="text-red-500">*</span>
                 </label>
-                <select 
+                <select
                   value={selectedClass}
                   onChange={handleClassChange}
                   required
@@ -334,7 +334,7 @@ const MarkAttendance = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Date <span className="text-red-500">*</span>
               </label>
-              <input 
+              <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
@@ -345,7 +345,7 @@ const MarkAttendance = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-              <input 
+              <input
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
@@ -374,7 +374,7 @@ const MarkAttendance = () => {
                   Students ({students.length})
                 </h2>
               </div>
-              
+
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -418,23 +418,21 @@ const MarkAttendance = () => {
                         <div className="flex justify-center gap-2">
                           <button
                             type="button"
-                            onClick={() => toggleStudentStatus(student.studentId)}
-                            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                              student.status === 'Present'
-                                ? 'bg-green-500 text-white hover:bg-green-600'
-                                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                            }`}
+                            onClick={() => updateStudentStatus(student.studentId, 'Present')}
+                            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Present'
+                              ? 'bg-green-500 text-white hover:bg-green-600'
+                              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                              }`}
                           >
                             <FaCheckCircle className="inline mr-1" /> Present
                           </button>
                           <button
                             type="button"
-                            onClick={() => toggleStudentStatus(student.studentId)}
-                            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                              student.status === 'Absent'
-                                ? 'bg-red-500 text-white hover:bg-red-600'
-                                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                            }`}
+                            onClick={() => updateStudentStatus(student.studentId, 'Absent')}
+                            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Absent'
+                              ? 'bg-red-500 text-white hover:bg-red-600'
+                              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                              }`}
                           >
                             <FaTimesCircle className="inline mr-1" /> Absent
                           </button>
@@ -462,23 +460,21 @@ const MarkAttendance = () => {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => toggleStudentStatus(student.studentId)}
-                      className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                        student.status === 'Present'
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 text-gray-600'
-                      }`}
+                      onClick={() => updateStudentStatus(student.studentId, 'Present')}
+                      className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Present'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-200 text-gray-600'
+                        }`}
                     >
                       <FaCheckCircle className="inline mr-1" /> Present
                     </button>
                     <button
                       type="button"
-                      onClick={() => toggleStudentStatus(student.studentId)}
-                      className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                        student.status === 'Absent'
-                          ? 'bg-red-500 text-white'
-                          : 'bg-gray-200 text-gray-600'
-                      }`}
+                      onClick={() => updateStudentStatus(student.studentId, 'Absent')}
+                      className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Absent'
+                        ? 'bg-red-500 text-white'
+                        : 'bg-gray-200 text-gray-600'
+                        }`}
                     >
                       <FaTimesCircle className="inline mr-1" /> Absent
                     </button>

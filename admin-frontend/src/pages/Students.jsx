@@ -285,22 +285,22 @@ const Students = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-5 rounded-xl shadow-md flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-1/3">
-          <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+      <div className="bg-white p-4 rounded-xl shadow-md flex flex-wrap gap-3 items-center justify-between">
+        <div className="relative w-full md:flex-1">
+          <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Search by Name or Mobile..."
-            className="w-full pl-11 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300"
+            className="w-full pl-9 pr-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 text-sm"
             value={searchTerm}
             onChange={(e) => updateFilter('search', e.target.value)}
           />
         </div>
 
-        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+        <div className="grid grid-cols-2 md:flex gap-2 w-full md:w-auto">
           <div className="relative">
             <select
-              className="w-full md:w-40 appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
+              className="w-full appearance-none pl-3 pr-8 py-2 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer text-sm"
               value={standardFilter}
               onChange={(e) => updateFilter('standard', e.target.value)}
             >
@@ -309,12 +309,12 @@ const Students = () => {
               <option value="12">12th</option>
               <option value="Others">Others</option>
             </select>
-            <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
           </div>
 
           <div className="relative">
             <select
-              className="w-full md:w-40 appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
+              className="w-full appearance-none pl-3 pr-8 py-2 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer text-sm"
               value={statusFilter}
               onChange={(e) => updateFilter('status', e.target.value)}
             >
@@ -323,12 +323,12 @@ const Students = () => {
               <option value="Not Admitted">Not Admitted</option>
               <option value="Dropped">Dropped</option>
             </select>
-            <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
           </div>
 
-          <div className="relative">
+          <div className="relative col-span-2 md:col-span-1">
             <select
-              className="w-full md:w-40 appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
+              className="w-full appearance-none pl-3 pr-8 py-2 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer text-sm"
               value={sortBy}
               onChange={(e) => updateFilter('sort', e.target.value)}
             >
@@ -337,7 +337,7 @@ const Students = () => {
               <option value="name_asc">Name (A-Z)</option>
               <option value="name_desc">Name (Z-A)</option>
             </select>
-            <FaSort className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <FaSort className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
           </div>
         </div>
       </div>
@@ -438,23 +438,28 @@ const Students = () => {
                     <p className="text-xs text-gray-500">Roll: {student.rollno || 'N/A'}</p>
                   </div>
                 </div>
-                <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-sm 
-                            ${student.status === 'Admitted' ? 'bg-green-100 text-green-800' :
-                    student.status === 'Dropped' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
-                  {student.status}
-                </span>
+                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+                  <div className={`flex items-center gap-2 px-3 py-1 text-xs font-bold rounded-full shadow-sm border 
+                              ${student.status === 'Admitted' ? 'bg-green-100 text-green-800 border-green-200' :
+                      student.status === 'Dropped' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                    <span>{student.status}</span>
+                    <Link
+                      to={`/students/${student._id}`}
+                      className={`p-1 rounded-full transition-colors flex items-center justify-center
+                        ${student.status === 'Admitted' ? 'bg-green-200 hover:bg-green-300 text-green-900' :
+                          student.status === 'Dropped' ? 'bg-red-200 hover:bg-red-300 text-red-900' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'}`}
+                      title="View Profile"
+                    >
+                      <FaEye className="text-[10px]" />
+                    </Link>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2 text-sm text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg">
+              <div className="space-y-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                 <p><span className="font-semibold text-gray-800">Mobile:</span> {student.contact?.parentMobile || 'N/A'}</p>
                 <p><span className="font-semibold text-gray-800">Standard:</span> <span className="text-[#2C3E50] font-bold">{student.standard}</span></p>
                 <p><span className="font-semibold text-gray-800">Batch:</span> {student.batch && student.batch.name ? <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-xs font-bold">{student.batch.name}</span> : <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs font-medium italic">Unassigned</span>}</p>
               </div>
-              <Link
-                to={`/students/${student._id}`}
-                className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-semibold shadow-md"
-              >
-                <FaEye /> View Profile
-              </Link>
             </div>
           ))}
           {filteredStudents.length === 0 && (
@@ -523,9 +528,8 @@ const Students = () => {
                       return (
                         <label
                           key={student._id}
-                          className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                            isSelected ? 'border-amber-300 bg-amber-50' : 'border-gray-100 bg-gray-50 hover:border-gray-200'
-                          }`}
+                          className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'border-amber-300 bg-amber-50' : 'border-gray-100 bg-gray-50 hover:border-gray-200'
+                            }`}
                         >
                           <input
                             type="checkbox"
@@ -563,10 +567,10 @@ const Students = () => {
                     const s = promote11Students.find(st => st._id === id);
                     return s?.feeStatus?.remaining > 0;
                   }) && (
-                    <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
-                      ⚠️ Some selected students have <strong>outstanding dues</strong>. Their fee records will be reset upon promotion.
-                    </div>
-                  )}
+                      <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
+                        ⚠️ Some selected students have <strong>outstanding dues</strong>. Their fee records will be reset upon promotion.
+                      </div>
+                    )}
                 </>
               )}
             </div>

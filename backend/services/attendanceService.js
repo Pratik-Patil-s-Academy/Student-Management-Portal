@@ -274,3 +274,18 @@ export const calculateBatchAttendanceStats = async (batchId, startDate, endDate)
     };
   });
 };
+
+export const fetchAllAttendance = async (startDate, endDate) => {
+  const filter = {};
+
+  if (startDate || endDate) {
+    filter.date = {};
+    if (startDate) filter.date.$gte = new Date(startDate);
+    if (endDate) filter.date.$lte = new Date(endDate);
+  }
+
+  return await Attendance.find(filter)
+    .populate('batchId')
+    .populate('students.studentId')
+    .sort({ date: -1 });
+};
