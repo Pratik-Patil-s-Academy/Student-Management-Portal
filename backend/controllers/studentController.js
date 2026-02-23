@@ -115,16 +115,40 @@ export const getStudentsForPromotion = TryCatch(async (req, res) => {
   res.status(200).json({ success: true, students });
 });
 
-// Promote selected students from 11th to 12th (resets fees, clears batch)
+// Promote selected students from 11th to 12th (carries forward dues, clears batch)
 export const promoteStudents = TryCatch(async (req, res) => {
   const { studentIds } = req.body;
   if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
     return res.status(400).json({ success: false, message: 'studentIds array is required' });
   }
-  const result = await studentService.promoteStudentsToNextStandard(studentIds);
+  const result = await studentService.promoteStudentsToNextStandard(studentIds, req.user?._id);
   res.status(200).json({
     success: true,
-    message: result.message || `${result.promoted} student(s) promoted from Standard 11 to Standard 12. Fee records reset.`,
+    message: result.message || `${result.promoted} student(s) promoted from Standard 11 to Standard 12. Fees carried forward.`,
     promoted: result.promoted
+  });
+});
+
+export const reassignRollNumbers = TryCatch(async (req, res) => {
+  const { standard } = req.body;
+  const result = await studentService.reassignRollNumbers(standard);
+
+  res.status(200).json({
+    success: true,
+    message: result.message || `Roll numbers reassigned alphabetically for ${result.updated} student(s).`,
+    updated: result.updated
+  });
+});
+
+export const demoteStudent = TryCatch(async (req, res) => {
+  const { id } = req.params;
+  const { targetStandard } = req.body;
+
+  const student = await studentService.demoteStudent(id, targetStandard);
+
+  res.status(200).json({
+    success: true,
+    message: `Student successfully demoted to Standard ${student.standard}`,
+    student
   });
 });

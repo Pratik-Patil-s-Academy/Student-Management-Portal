@@ -1,5 +1,6 @@
 import { Batch } from '../models/batchModel.js';
 import { Student } from '../models/studentModel.js';
+import { Attendance } from '../models/attendenceModel.js';
 import TryCatch from '../utils/TryCatch.js';
 import * as attendanceService from '../services/attendanceService.js';
 
@@ -10,7 +11,19 @@ export const markAttendance = TryCatch(async (req, res) => {
 
   await attendanceService.validateStudentsInBatch(batch, students);
 
-  const attendance = await attendanceService.createAttendanceRecord(batchId, date, students, subject);
+  let attendance;
+  const existingRecord = await Attendance.findOne({
+    batchId,
+    date: new Date(date)
+  });
+
+  if (existingRecord) {
+    // Update existing record
+    attendance = await attendanceService.updateAttendanceRecord(existingRecord._id, students, subject);
+  } else {
+    // Create new record
+    attendance = await attendanceService.createAttendanceRecord(batchId, date, students, subject);
+  }
 
   res.status(201).json({
     success: true,

@@ -247,7 +247,7 @@ export const fetchReceiptById = async (receiptId) => {
   return receipt;
 };
 
-const generateReceiptNumber = async () => {
+export const generateReceiptNumber = async () => {
   const count = await FeeReceipt.countDocuments();
   const currentYear = new Date().getFullYear();
   return `RCP${currentYear}${(count + 1).toString().padStart(4, '0')}`;

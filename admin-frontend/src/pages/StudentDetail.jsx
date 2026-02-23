@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { getStudentById, updateStudent, deleteStudent, assignBatch } from '../services/studentService';
+import { getStudentById, updateStudent, deleteStudent, assignBatch, demoteStudent } from '../services/studentService';
 import { getAllBatches } from '../services/batchService';
 import { getStudentFeeDetails } from '../services/feeService';
 import { getStudentTestHistory } from '../services/testService';
@@ -13,7 +13,7 @@ import {
 import {
   FaArrowLeft, FaUserGraduate, FaEdit, FaSave, FaTimes, FaTrash,
   FaIdCard, FaUsers, FaMoneyBillWave, FaClipboardList, FaCalendarCheck,
-  FaGraduationCap, FaCheckCircle, FaTimesCircle
+  FaGraduationCap, FaCheckCircle, FaTimesCircle, FaLevelDownAlt
 } from 'react-icons/fa';
 
 const TABS = [
@@ -50,6 +50,11 @@ const StudentDetail = () => {
   // Fee data
   const [feeData, setFeeData] = useState(null);
   const [feeLoading, setFeeLoading] = useState(false);
+
+  // Demote state
+  const [showDemoteModal, setShowDemoteModal] = useState(false);
+  const [targetStandard, setTargetStandard] = useState('11');
+  const [demoting, setDemoting] = useState(false);
 
   // Test data
   const [testHistory, setTestHistory] = useState([]);
@@ -208,6 +213,31 @@ const StudentDetail = () => {
     finally { setAssigningBatch(false); }
   };
 
+  const handleDemote = async () => {
+    if (!targetStandard) { toast.error('Select target standard'); return; }
+    if (!window.confirm(`Are you sure you want to demote to Standard ${targetStandard}? This will erase batch assignments and may adjust fee dues.`)) return;
+    setDemoting(true);
+    try {
+      const result = await demoteStudent(id, targetStandard);
+      if (result.success) {
+        toast.success('Student demoted successfully!');
+        setStudent(result.student);
+        setShowDemoteModal(false);
+        // Refresh fee data as it might have changed
+        if (activeTab === 'fees') {
+          setFeeLoading(true);
+          const feeRes = await getStudentFeeDetails(id);
+          if (feeRes.success) setFeeData(feeRes);
+          setFeeLoading(false);
+        }
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to demote student');
+    } finally {
+      setDemoting(false);
+    }
+  };
+
   // ── Derived chart data ──────────────────────────────────────────────────────
 
   const testChartData = testHistory.map(t => ({
@@ -268,6 +298,14 @@ const StudentDetail = () => {
         <div className="flex items-center gap-2">
           {!isEditing ? (
             <>
+              {student.standard === '12' && (
+                <button
+                  onClick={() => setShowDemoteModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white font-semibold rounded-lg transition-all text-sm"
+                >
+                  <FaLevelDownAlt /> Demote
+                </button>
+              )}
               <button onClick={handleDelete} className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-semibold rounded-lg transition-all text-sm">
                 <FaTrash /> Delete
               </button>
@@ -790,6 +828,34 @@ const StudentDetail = () => {
               <button onClick={() => { setShowBatchModal(false); setSelectedBatchId(''); }} disabled={assigningBatch} className="flex-1 px-4 py-2.5 bg-gray-200 text-gray-700 hover:bg-gray-300 font-semibold rounded-xl transition-all">Cancel</button>
               <button onClick={handleAssignBatch} disabled={assigningBatch || !selectedBatchId} className="flex-1 px-4 py-2.5 bg-[#2C3E50] text-white hover:bg-[#34495E] font-semibold rounded-xl transition-all shadow disabled:opacity-50">
                 {assigningBatch ? 'Assigning…' : 'Assign'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Demote Modal ──────────────────────────────────────────────────── */}
+      {showDemoteModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-orange-600 mb-4 flex items-center gap-2"><FaLevelDownAlt /> Demote Student</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Demoting will clear the student's batch and revert their standard. If they had unpaid 12th Standard fees, those will be removed from their dues.
+            </p>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Target Standard</label>
+            <select
+              value={targetStandard}
+              onChange={e => setTargetStandard(e.target.value)}
+              className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 mb-5"
+              disabled={demoting}
+            >
+              <option value="11">Standard 11</option>
+              <option value="Others">Others</option>
+            </select>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDemoteModal(false)} disabled={demoting} className="flex-1 px-4 py-2.5 bg-gray-200 text-gray-700 hover:bg-gray-300 font-semibold rounded-xl transition-all">Cancel</button>
+              <button onClick={handleDemote} disabled={demoting || !targetStandard} className="flex-1 px-4 py-2.5 bg-orange-600 text-white hover:bg-orange-700 font-semibold rounded-xl transition-all shadow disabled:opacity-50">
+                {demoting ? 'Demoting…' : 'Confirm Demote'}
               </button>
             </div>
           </div>

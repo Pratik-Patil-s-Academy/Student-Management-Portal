@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getAllStudents, createStudent, promoteStudents, getStudentsForPromotion } from '../services/studentService';
+import { getAllStudents, createStudent, promoteStudents, getStudentsForPromotion, reassignRollNumbers } from '../services/studentService';
 import { getAllBatches } from '../services/batchService';
 import {
   FaSearch, FaSort, FaEye, FaUserGraduate, FaFilter,
@@ -87,6 +87,10 @@ const Students = () => {
       toast.error('Please select at least one student to promote');
       return;
     }
+
+    const confirm = window.confirm(`Confirm Promotion? Selected students will be moved to Standard 12. Standard 12 fees will be added to their current remaining dues.`);
+    if (!confirm) return;
+
     setPromoting(true);
     try {
       const res = await promoteStudents(selectedIds);
@@ -136,6 +140,25 @@ const Students = () => {
       setSelectedForPromotion(new Set());
     } else {
       setSelectedForPromotion(new Set(promote11Students.map(s => s._id)));
+    }
+  };
+
+  const handleAutoAssignRollNo = async () => {
+    const scope = standardFilter ? `Standard ${standardFilter}` : 'ALL';
+    const confirm = window.confirm(`Are you sure you want to REASSIGN roll numbers alphabetically for ${scope} students? This will overwrite existing roll numbers.`);
+    if (!confirm) return;
+
+    try {
+      setLoading(true);
+      const res = await reassignRollNumbers(standardFilter);
+      if (res.success) {
+        toast.success(res.message);
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to reassign roll numbers');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -275,6 +298,13 @@ const Students = () => {
               <FaArrowUp /> Promote to 12th ({students11Count})
             </button>
           )}
+          <button
+            onClick={handleAutoAssignRollNo}
+            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow transition-all hover:scale-105 text-sm"
+            title="Auto-assign roll numbers alphabetically for currently filtered standard"
+          >
+            <FaSort /> Auto Assign Roll No
+          </button>
           <button
             onClick={openModal}
             className="flex items-center gap-2 px-5 py-2.5 bg-[#2C3E50] hover:bg-[#34495E] text-white rounded-lg font-semibold shadow transition-all hover:scale-105 text-sm"
@@ -458,11 +488,6 @@ const Students = () => {
                   </div>
                 </div>
               </div>
-              <div className="space-y-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                <p><span className="font-semibold text-gray-800">Mobile:</span> {student.contact?.parentMobile || 'N/A'}</p>
-                <p><span className="font-semibold text-gray-800">Standard:</span> <span className="text-[#2C3E50] font-bold">{student.standard}</span></p>
-                <p><span className="font-semibold text-gray-800">Batch:</span> {student.batch && student.batch.name ? <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-xs font-bold">{student.batch.name}</span> : <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs font-medium italic">Unassigned</span>}</p>
-              </div>
             </Link>
           ))}
           {filteredStudents.length === 0 && (
@@ -492,8 +517,8 @@ const Students = () => {
 
             {/* Info Banner */}
             <div className="px-5 pt-4 flex-shrink-0">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
-                ⚠️ <strong>Fee records will be reset</strong> for promoted students. This action cannot be undone.
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
+                ℹ️ <strong>Fees will be carried forward</strong>. Any outstanding dues from Standard 11 will be added to the Standard 12 fees.
               </div>
             </div>
 
@@ -570,8 +595,8 @@ const Students = () => {
                     const s = promote11Students.find(st => st._id === id);
                     return s?.feeStatus?.remaining > 0;
                   }) && (
-                      <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
-                        ⚠️ Some selected students have <strong>outstanding dues</strong>. Their fee records will be reset upon promotion.
+                      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+                        ℹ️ Some selected students have <strong>outstanding dues</strong>. These will be added to their next standard fees.
                       </div>
                     )}
                 </>

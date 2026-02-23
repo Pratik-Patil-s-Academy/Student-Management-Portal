@@ -16,14 +16,8 @@ export const validateAttendanceData = async (batchId, date, students) => {
     throw new Error('At least one student attendance record is required');
   }
 
-  const existingAttendance = await Attendance.findOne({
-    batchId,
-    date: new Date(date)
-  });
-
-  if (existingAttendance) {
-    throw new Error('Attendance already marked for this batch on this date');
-  }
+  // We removed the existing attendance check here to allow the controller 
+  // to decide whether to create or update.
 
   return batch;
 };

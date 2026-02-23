@@ -202,38 +202,35 @@ const TestDetail = () => {
     return 'text-red-600';
   };
 
-  // Build ranked scores for current test
+  // Build ranked scores for current test (Present students only)
   const getRankedScores = () => {
     if (!test?.scores) return [];
-    const sorted = [...test.scores]
-      .sort((a, b) => {
-        if (a.attendanceStatus === 'Absent' && b.attendanceStatus !== 'Absent') return 1;
-        if (b.attendanceStatus === 'Absent' && a.attendanceStatus !== 'Absent') return -1;
-        return b.marksObtained - a.marksObtained;
-      });
+
+    // Filter out absent students
+    const presentScores = test.scores.filter(s => s.attendanceStatus !== 'Absent');
+
+    const sorted = presentScores.sort((a, b) => b.marksObtained - a.marksObtained);
+
     let rank = 1;
     return sorted.map((score, idx) => {
-      if (idx > 0 && score.attendanceStatus === 'Present' &&
-        sorted[idx - 1].attendanceStatus === 'Present' &&
-        score.marksObtained < sorted[idx - 1].marksObtained) {
+      if (idx > 0 && score.marksObtained < sorted[idx - 1].marksObtained) {
         rank = idx + 1;
       }
-      return { ...score, rank: score.attendanceStatus === 'Absent' ? '—' : rank };
+      return { ...score, rank };
     });
   };
 
   const exportTestCSV = () => {
     if (!test?.scores?.length) return;
     const ranked = getRankedScores();
-    const headers = ['Rank', 'Student Name', 'Roll No', 'Status', 'Marks', 'Max Marks', 'Percentage', 'Remark'];
+    const headers = ['Rank', 'Student Name', 'Roll No', 'Marks', 'Max Marks', 'Percentage', 'Remark'];
     const rows = ranked.map(s => [
       s.rank,
       s.studentId?.personalDetails?.fullName || '-',
       s.studentId?.rollno || '-',
-      s.attendanceStatus,
-      s.attendanceStatus === 'Absent' ? '-' : s.marksObtained,
+      s.marksObtained,
       test.maxMarks,
-      s.attendanceStatus === 'Absent' ? '-' : ((s.marksObtained / test.maxMarks) * 100).toFixed(1) + '%',
+      ((s.marksObtained / test.maxMarks) * 100).toFixed(1) + '%',
       s.remark || '',
     ]);
     // \uFEFF BOM ensures Excel reads UTF-8 correctly
@@ -257,14 +254,13 @@ const TestDetail = () => {
     doc.text(`Subject: ${test.subject} | Class: ${test.classLevel} | Date: ${formatDate(test.testDate)} | Max Marks: ${test.maxMarks}`, 14, 24);
     autoTable(doc, {
       startY: 30,
-      head: [['Rank', 'Student Name', 'Roll No', 'Status', 'Marks', '%', 'Remark']],
+      head: [['Rank', 'Student Name', 'Roll No', 'Marks', '%', 'Remark']],
       body: ranked.map(s => [
         s.rank,
         s.studentId?.personalDetails?.fullName || '-',
         s.studentId?.rollno || '-',
-        s.attendanceStatus,
-        s.attendanceStatus === 'Absent' ? '-' : `${s.marksObtained}/${test.maxMarks}`,
-        s.attendanceStatus === 'Absent' ? '-' : ((s.marksObtained / test.maxMarks) * 100).toFixed(1) + '%',
+        `${s.marksObtained}/${test.maxMarks}`,
+        ((s.marksObtained / test.maxMarks) * 100).toFixed(1) + '%',
         s.remark || '',
       ]),
       styles: { fontSize: 9 },
@@ -665,7 +661,6 @@ const TestDetail = () => {
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide rounded-l-lg">Rank</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Student</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Roll No</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Marks</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">%</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide rounded-r-lg">Remark</th>
@@ -673,10 +668,8 @@ const TestDetail = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {getRankedScores().map((score, idx) => {
-                      const pct = score.attendanceStatus === 'Present'
-                        ? ((score.marksObtained / test.maxMarks) * 100).toFixed(1)
-                        : null;
-                      const isTop3 = score.attendanceStatus === 'Present' && typeof score.rank === 'number' && score.rank <= 3;
+                      const pct = ((score.marksObtained / test.maxMarks) * 100).toFixed(1);
+                      const isTop3 = typeof score.rank === 'number' && score.rank <= 3;
                       const rankDisplay = score.rank === 1 ? '🥇' : score.rank === 2 ? '🥈' : score.rank === 3 ? '🥉' : score.rank;
                       return (
                         <tr key={score._id || idx} className={`hover:bg-gray-50 transition-colors ${isTop3 ? 'bg-yellow-50/40' : ''}`}>
@@ -685,24 +678,11 @@ const TestDetail = () => {
                             {score.studentId?.personalDetails?.fullName || '—'}
                           </td>
                           <td className="px-4 py-3 text-gray-500">{score.studentId?.rollno || '—'}</td>
-                          <td className="px-4 py-3">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${score.attendanceStatus === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                              }`}>
-                              {score.attendanceStatus === 'Present' ? <FaUserCheck className="text-xs" /> : <FaUserTimes className="text-xs" />}
-                              {score.attendanceStatus}
-                            </span>
-                          </td>
                           <td className="px-4 py-3 font-bold text-gray-800">
-                            {score.attendanceStatus === 'Absent'
-                              ? <span className="text-gray-400 font-normal">—</span>
-                              : <span>{score.marksObtained} <span className="text-gray-400 font-normal text-xs">/ {test.maxMarks}</span></span>
-                            }
+                            <span>{score.marksObtained} <span className="text-gray-400 font-normal text-xs">/ {test.maxMarks}</span></span>
                           </td>
                           <td className="px-4 py-3">
-                            {pct !== null
-                              ? <span className={`font-bold ${getPercentageColor(pct)}`}>{pct}%</span>
-                              : <span className="text-gray-400">—</span>
-                            }
+                            <span className={`font-bold ${getPercentageColor(pct)}`}>{pct}%</span>
                           </td>
                           <td className="px-4 py-3 text-gray-500 text-xs">{score.remark || '—'}</td>
                         </tr>

@@ -360,20 +360,32 @@ export const getStudentsForPromotion = async () => {
 
 /**
  * Promote selected students from standard '11' to '12'.
- * - Resets fee records (Installment + FeeReceipt) for promoted students.
+ * - Carries forward outstanding dues to the next standard.
  * - Removes them from their current batches.
  * @param {string[]} studentIds - IDs of students to promote
+ * @param {string} adminId - ID of the admin performing promotion
  */
-export const promoteStudentsToNextStandard = async (studentIds) => {
-  const { Installment } = await import('../models/installmentModel.js');
-  const { FeeReceipt } = await import('../models/FeeReceiptModel.js');
+export const promoteStudentsToNextStandard = async (studentIds, adminId) => {
+  const mongoose = (await import('mongoose')).default;
+  const FeeReceipt = mongoose.model('FeeReceipt');
+  const FeeStructure = mongoose.model('FeeStructure');
+  const Batch = mongoose.model('Batch');
+  const { generateReceiptNumber } = await import('./feeService.js');
 
   if (!studentIds || studentIds.length === 0) {
     throw new Error('No students selected for promotion');
   }
 
-  // Verify all selected students are actually Standard 11
-  const students = await Student.find({ _id: { $in: studentIds }, standard: '11' }).select('_id batch');
+  // 1. Fetch Standard 11 and Standard 12 fee structure
+  const fee11 = await FeeStructure.findOne({ standard: '11' });
+  const fee12 = await FeeStructure.findOne({ standard: '12' });
+
+  if (!fee12) {
+    throw new Error('Fee structure for Standard 12 not found. Please set it up first.');
+  }
+
+  // 2. Verify all selected students are actually Standard 11
+  const students = await Student.find({ _id: { $in: studentIds }, standard: '11' }).select('_id batch personalDetails');
   if (students.length === 0) {
     return { promoted: 0, message: 'No valid Standard 11 students found in selection' };
   }
@@ -381,17 +393,48 @@ export const promoteStudentsToNextStandard = async (studentIds) => {
   const validIds = students.map(s => s._id);
   const batchIds = [...new Set(students.filter(s => s.batch).map(s => s.batch.toString()))];
 
-  // 1. Reset fee records — delete installments and receipts for promoted students
-  await Installment.deleteMany({ student: { $in: validIds } });
-  await FeeReceipt.deleteMany({ studentId: { $in: validIds } });
+  console.log(`Starting promotion for ${students.length} students. Carry forward fee: ${fee12.totalFee}`);
 
-  // 2. Bulk update: set standard to '12', clear batch
+  // 3. Process fee receipts — carry forward dues
+  for (const student of students) {
+    // Exact match for ObjectId
+    let receipt = await FeeReceipt.findOne({ studentId: student._id });
+
+    if (receipt) {
+      const oldRemaining = receipt.remainingAmount;
+      receipt.remainingAmount += fee12.totalFee;
+      receipt.feeStatus = 'Partially Paid';
+      await receipt.save();
+      console.log(`Updated receipt for ${student.personalDetails.fullName}: ${oldRemaining} -> ${receipt.remainingAmount}`);
+    } else {
+      // Create a new receipt with Standard 11 + Standard 12 fees
+      const previousDues = fee11 ? fee11.totalFee : 0;
+      const combinedRemaining = previousDues + fee12.totalFee;
+
+      const mainReceiptNumber = await generateReceiptNumber();
+      receipt = new FeeReceipt({
+        studentId: student._id,
+        installmentIds: [],
+        receiptNumber: mainReceiptNumber,
+        receivedFrom: student.personalDetails.fullName,
+        totalAmount: 0,
+        remainingAmount: combinedRemaining,
+        paymentMode: 'Cash',
+        feeStatus: 'Partially Paid',
+        createdBy: adminId
+      });
+      await receipt.save();
+      console.log(`Created new receipt for ${student.personalDetails.fullName} with combined fee ${combinedRemaining} (11th: ${previousDues}, 12th: ${fee12.totalFee})`);
+    }
+  }
+
+  // 4. Bulk update students: set standard to '12', clear batch
   await Student.updateMany(
     { _id: { $in: validIds } },
     { $set: { standard: '12' }, $unset: { batch: '' } }
   );
 
-  // 3. Remove these students from their old batches
+  // 5. Remove these students from their old batches
   if (batchIds.length > 0) {
     await Batch.updateMany(
       { _id: { $in: batchIds } },
@@ -400,5 +443,91 @@ export const promoteStudentsToNextStandard = async (studentIds) => {
   }
 
   return { promoted: validIds.length };
+};
+
+/**
+ * Reassign roll numbers to students alphabetically by their full name.
+ * Can be filtered by standard.
+ * @param {string} standard - Optional standard to filter by
+ */
+export const reassignRollNumbers = async (standard) => {
+  const query = {};
+  if (standard && ['11', '12', 'Others'].includes(standard)) {
+    query.standard = standard;
+  }
+
+  // Fetch students, sort alphabetically by full name
+  const students = await Student.find(query).sort({ 'personalDetails.fullName': 1 });
+
+  if (students.length === 0) {
+    return { updated: 0, message: 'No students found to reassign roll numbers.' };
+  }
+
+  // Sequential update
+  const bulkOps = students.map((student, index) => ({
+    updateOne: {
+      filter: { _id: student._id },
+      update: { $set: { rollno: index + 1 } }
+    }
+  }));
+
+  await Student.bulkWrite(bulkOps);
+
+  return { updated: students.length };
+};
+
+/**
+ * Demote a student who was accidentally promoted (e.g., from 12th back to 11th).
+ * - Changes standard to targetStandard.
+ * - Clears batch.
+ * - Deducts 12th standard fee from outstanding dues if applicable.
+ */
+export const demoteStudent = async (studentId, targetStandard = '11') => {
+  const mongoose = (await import('mongoose')).default;
+  const FeeReceipt = mongoose.model('FeeReceipt');
+  const FeeStructure = mongoose.model('FeeStructure');
+
+  const student = await Student.findById(studentId);
+  if (!student) throw new Error('Student not found');
+
+  if (student.standard === targetStandard) {
+    throw new Error(`Student is already in Standard ${targetStandard}`);
+  }
+
+  // If coming from 12th, try to deduct the 12th standard fees
+  if (student.standard === '12') {
+    const fee12 = await FeeStructure.findOne({ standard: '12' });
+    if (fee12) {
+      const receipt = await FeeReceipt.findOne({ studentId });
+      if (receipt) {
+        // Prevent negative remaining amount
+        const deductAmount = Math.min(fee12.totalFee, receipt.remainingAmount);
+        if (deductAmount > 0) {
+          receipt.remainingAmount -= deductAmount;
+          // Update status
+          if (receipt.remainingAmount === 0 && receipt.totalAmount > 0) {
+            receipt.feeStatus = 'Paid';
+          } else if (receipt.remainingAmount === 0 && receipt.totalAmount === 0) {
+            receipt.feeStatus = 'Pending';
+          } else {
+            receipt.feeStatus = 'Partially Paid';
+          }
+          await receipt.save();
+        }
+      }
+    }
+  }
+
+  // Clear batch if needed securely
+  if (student.batch) {
+    const Batch = mongoose.model('Batch');
+    await Batch.findByIdAndUpdate(student.batch, { $pull: { students: student._id } });
+  }
+
+  student.standard = targetStandard;
+  student.batch = null;
+  await student.save();
+
+  return student;
 };
 

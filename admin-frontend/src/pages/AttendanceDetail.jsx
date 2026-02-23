@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAttendanceById, updateAttendance, deleteAttendance } from '../services/attendanceService';
+import { getBatchById } from '../services/batchService';
 import { FaArrowLeft, FaCheckCircle, FaTimesCircle, FaSave, FaTrash, FaCalendarAlt, FaUsers } from 'react-icons/fa';
 
 const AttendanceDetail = () => {
@@ -27,12 +28,38 @@ const AttendanceDetail = () => {
       if (data.success) {
         setAttendance(data.attendance);
         setSubject(data.attendance.subject || 'Maths');
-        setStudents(data.attendance.students.map(s => ({
-          studentId: s.studentId._id,
-          name: s.studentId.personalDetails?.fullName || 'Unknown',
-          rollno: s.studentId.rollno,
-          status: s.status
-        })));
+
+        // Fetch current batch students to ensure all are visible
+        const batchData = await getBatchById(data.attendance.batchId._id);
+
+        if (batchData.success) {
+          const attendanceStudents = data.attendance.students || [];
+          const batchStudents = batchData.batch.students || [];
+
+          // Create a map of existing attendance status
+          const statusMap = new Map();
+          attendanceStudents.forEach(s => {
+            statusMap.set(s.studentId._id, s.status);
+          });
+
+          // Merge: all current batch students + their saved status (or 'Present' if new)
+          const mergedStudents = batchStudents.map(s => ({
+            studentId: s._id,
+            name: s.personalDetails?.fullName || 'Unknown',
+            rollno: s.rollno,
+            status: statusMap.has(s._id) ? statusMap.get(s._id) : 'Present'
+          }));
+
+          setStudents(mergedStudents);
+        } else {
+          // Fallback to only saved students if batch fetch fails
+          setStudents(data.attendance.students.map(s => ({
+            studentId: s.studentId._id,
+            name: s.studentId.personalDetails?.fullName || 'Unknown',
+            rollno: s.studentId.rollno,
+            status: s.status
+          })));
+        }
       }
     } catch (err) {
       setError(err.message || 'Failed to fetch attendance record');
@@ -230,8 +257,8 @@ const AttendanceDetail = () => {
                         type="button"
                         onClick={() => updateStudentStatus(student.studentId, 'Present')}
                         className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Present'
-                            ? 'bg-green-500 text-white hover:bg-green-600'
-                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                          ? 'bg-green-500 text-white hover:bg-green-600'
+                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                           }`}
                       >
                         <FaCheckCircle className="inline mr-1" /> Present
@@ -240,8 +267,8 @@ const AttendanceDetail = () => {
                         type="button"
                         onClick={() => updateStudentStatus(student.studentId, 'Absent')}
                         className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Absent'
-                            ? 'bg-red-500 text-white hover:bg-red-600'
-                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                          ? 'bg-red-500 text-white hover:bg-red-600'
+                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                           }`}
                       >
                         <FaTimesCircle className="inline mr-1" /> Absent
@@ -269,8 +296,8 @@ const AttendanceDetail = () => {
                   type="button"
                   onClick={() => updateStudentStatus(student.studentId, 'Present')}
                   className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Present'
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 text-gray-600'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-200 text-gray-600'
                     }`}
                 >
                   <FaCheckCircle className="inline mr-1" /> Present
@@ -279,8 +306,8 @@ const AttendanceDetail = () => {
                   type="button"
                   onClick={() => updateStudentStatus(student.studentId, 'Absent')}
                   className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Absent'
-                      ? 'bg-red-500 text-white'
-                      : 'bg-gray-200 text-gray-600'
+                    ? 'bg-red-500 text-white'
+                    : 'bg-gray-200 text-gray-600'
                     }`}
                 >
                   <FaTimesCircle className="inline mr-1" /> Absent

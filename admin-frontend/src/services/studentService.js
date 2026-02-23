@@ -106,3 +106,21 @@ export const promoteStudents = async (studentIds) => {
         throw error.response?.data || error.message;
     }
 };
+
+export const reassignRollNumbers = async (standard) => {
+    try {
+        const response = await api.post('/api/students/reassign-rollnos', { standard });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
+
+export const demoteStudent = async (studentId, targetStandard) => {
+    try {
+        const response = await api.post(`/api/students/${studentId}/demote`, { targetStandard });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};

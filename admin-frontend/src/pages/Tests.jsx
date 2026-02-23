@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllTests, createTest, deleteTest, getOverallPerformance } from '../services/testService';
+import { getAllTests, createTest, deleteTest } from '../services/testService';
 import { getAllBatches } from '../services/batchService';
 import {
   FaPlus, FaTrash, FaClipboardList, FaCalendarAlt,
-  FaGraduationCap, FaBook, FaTimes, FaChartBar, FaDownload, FaTrophy
+  FaGraduationCap, FaBook, FaTimes, FaChartBar, FaTrophy
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 const SUBJECT_COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444', '#10b981'];
 const CLASS_LEVELS = ['11th', '12th'];
@@ -42,12 +40,6 @@ const Tests = () => {
   const [formData, setFormData] = useState(emptyForm);
   const [modalError, setModalError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-
-  // Overall Performance Modal
-  const [showPerf, setShowPerf] = useState(false);
-  const [perfLimit, setPerfLimit] = useState(10);
-  const [perfLoading, setPerfLoading] = useState(false);
-  const [perfData, setPerfData] = useState(null); // { tests: [], students: [] }
 
   useEffect(() => {
     fetchData();
@@ -157,73 +149,6 @@ const Tests = () => {
 
   const getScoreCount = (test) => test.scores?.length || 0;
 
-  // ── Overall Performance ──────────────────────────────────────────────
-  const openPerformanceModal = async () => {
-    setShowPerf(true);
-    await loadPerformance(perfLimit);
-  };
-
-  const loadPerformance = async (limit) => {
-    setPerfLoading(true);
-    try {
-      const res = await getOverallPerformance({ limit });
-      if (res.success) setPerfData(res);
-    } catch (err) {
-      toast.error(err.message || 'Failed to load performance data');
-    } finally {
-      setPerfLoading(false);
-    }
-  };
-
-  const handleLimitChange = async (newLimit) => {
-    setPerfLimit(newLimit);
-    await loadPerformance(newLimit);
-  };
-
-  const exportPerfCSV = () => {
-    if (!perfData?.students?.length) return;
-    const headers = ['Rank', 'Roll No', 'Student Name', 'Tests Appeared', 'Total Marks Obtained', 'Total Max Marks', 'Percentage'];
-    const rows = perfData.students.map(s => [
-      s.rank,
-      s.rollno || '-',
-      s.name || '-',
-      s.testsAppeared,
-      s.totalMarksObtained,
-      s.totalMaxMarks,
-      s.percentage + '%'
-    ]);
-    // \uFEFF BOM ensures Excel reads UTF-8 correctly
-    const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `overall_performance_last${perfLimit}tests.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const exportPerfPDF = () => {
-    if (!perfData?.students?.length) return;
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(`Overall Performance - Last ${perfData.tests.length} Tests`, 14, 16);
-    doc.setFontSize(10);
-    const testTitles = perfData.tests.map(t => t.title).join(', ');
-    doc.text(`Tests: ${testTitles}`, 14, 24, { maxWidth: 180 });
-    autoTable(doc, {
-      startY: 34,
-      head: [['Rank', 'Roll No', 'Student', 'Tests Appeared', 'Total Marks', 'Percentage']],
-      body: perfData.students.map(s => [
-        s.rank, s.rollno, s.name, s.testsAppeared,
-        `${s.totalMarksObtained}/${s.totalMaxMarks}`, s.percentage + '%'
-      ]),
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [44, 62, 80] },
-    });
-    doc.save(`overall_performance_last${perfLimit}tests.pdf`);
-  };
-
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
@@ -245,12 +170,12 @@ const Tests = () => {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-4xl font-bold text-[#2C3E50]">Tests</h1>
         <div className="flex gap-3 flex-wrap">
-          <button
-            onClick={openPerformanceModal}
+          <Link
+            to="/tests/performance"
             className="bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-all transform hover:scale-105 font-semibold text-sm"
           >
             <FaTrophy /> Overall Performance
-          </button>
+          </Link>
           <button
             onClick={openCreateModal}
             className="bg-[#2C3E50] hover:bg-[#34495E] text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-all transform hover:scale-105"
@@ -566,154 +491,6 @@ const Tests = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── Overall Performance Modal ──────────────────────────────────── */}
-      {showPerf && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden max-h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 flex justify-between items-center text-white flex-shrink-0">
-              <div>
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <FaTrophy /> Overall Performance (Rank Wise)
-                </h2>
-                <p className="text-amber-100 text-sm mt-0.5">
-                  {perfData ? `Showing data from last ${perfData.tests.length} test${perfData.tests.length !== 1 ? 's' : ''}` : 'Loading...'}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowPerf(false)}
-                className="hover:bg-white/20 p-2 rounded-full transition-colors"
-              >
-                <FaTimes />
-              </button>
-            </div>
-
-            {/* Controls */}
-            <div className="p-4 border-b border-gray-100 flex flex-wrap items-center gap-4 bg-gray-50 flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <label className="text-sm font-semibold text-gray-600">Last N Tests:</label>
-                <div className="flex gap-1.5">
-                  {[5, 10, 15, 20].map(n => (
-                    <button
-                      key={n}
-                      onClick={() => handleLimitChange(n)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border ${perfLimit === n
-                        ? 'bg-amber-500 text-white border-amber-500'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-amber-300'
-                        }`}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                  <input
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={perfLimit}
-                    onChange={e => {
-                      const v = Math.max(1, Math.min(100, Number(e.target.value)));
-                      setPerfLimit(v);
-                    }}
-                    onBlur={() => handleLimitChange(perfLimit)}
-                    className="w-16 border rounded-lg px-2 py-1 text-xs text-center focus:ring-2 focus:ring-amber-400 focus:outline-none"
-                    title="Custom number of tests"
-                    placeholder="N"
-                  />
-                </div>
-              </div>
-              {perfData?.students?.length > 0 && (
-                <div className="ml-auto flex gap-2">
-                  <button
-                    onClick={exportPerfCSV}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-sm font-semibold transition-colors"
-                  >
-                    <FaDownload /> CSV
-                  </button>
-                  <button
-                    onClick={exportPerfPDF}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-semibold transition-colors"
-                  >
-                    <FaDownload /> PDF
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Tests included */}
-            {perfData?.tests?.length > 0 && (
-              <div className="px-6 py-3 bg-blue-50 border-b border-blue-100 flex-shrink-0">
-                <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1.5">Tests included:</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {perfData.tests.map(t => (
-                    <span key={t._id} className="px-2 py-0.5 bg-white text-blue-700 text-xs rounded-full border border-blue-200 font-medium">
-                      {t.title} <span className="text-blue-400">({t.subject})</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {perfLoading ? (
-                <div className="text-center py-16">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-amber-500 mx-auto mb-3"></div>
-                  <p className="text-gray-500 font-medium">Loading performance data...</p>
-                </div>
-              ) : !perfData?.students?.length ? (
-                <div className="text-center py-16 text-gray-400">
-                  <FaTrophy className="text-5xl mx-auto mb-3 opacity-20" />
-                  <p className="font-medium">No data available</p>
-                  <p className="text-sm mt-1">Enter scores for tests to see rank data here.</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 text-left">
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide rounded-l-lg">Rank</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Roll No</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Student Name</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Tests Appeared</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Marks</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide rounded-r-lg">Percentage</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {perfData.students.map((s) => {
-                        const rankDisplay = s.rank === 1 ? '🥇' : s.rank === 2 ? '🥈' : s.rank === 3 ? '🥉' : s.rank;
-                        const isTop3 = s.rank <= 3;
-                        const pctNum = parseFloat(s.percentage);
-                        const pctColor = pctNum >= 75 ? 'text-green-600' : pctNum >= 40 ? 'text-yellow-600' : 'text-red-600';
-                        return (
-                          <tr key={s.studentId} className={`hover:bg-gray-50 transition-colors ${isTop3 ? 'bg-amber-50/50' : ''}`}>
-                            <td className="px-4 py-3 font-bold text-gray-700 text-base">{rankDisplay}</td>
-                            <td className="px-4 py-3 text-gray-500">{s.rollno}</td>
-                            <td className="px-4 py-3 font-semibold text-gray-800">{s.name}</td>
-                            <td className="px-4 py-3 text-center">
-                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
-                                {s.testsAppeared}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 font-bold text-gray-800">
-                              {s.totalMarksObtained}
-                              <span className="text-gray-400 font-normal text-xs"> / {s.totalMaxMarks}</span>
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className={`font-bold ${pctColor}`}>{s.percentage}%</span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )}

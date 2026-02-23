@@ -27,6 +27,7 @@ const FeeDetail = lazy(() => import('./pages/FeeDetail'));
 const ProcessPayment = lazy(() => import('./pages/ProcessPayment'));
 const Receipt = lazy(() => import('./pages/Receipt'));
 const Tests = lazy(() => import('./pages/Tests'));
+const OverallPerformance = lazy(() => import('./pages/OverallPerformance'));
 const TestDetail = lazy(() => import('./pages/TestDetail'));
 import { MessageLoading } from './components/ui/message-loading';
 
@@ -58,6 +59,7 @@ const App = () => {
                 <Route path="/fees/payment/:studentId" element={<ProcessPayment />} />
                 <Route path="/fees/receipt/:studentId" element={<Receipt />} />
                 <Route path="/tests" element={<Tests />} />
+                <Route path="/tests/performance" element={<OverallPerformance />} />
                 <Route path="/tests/:testId" element={<TestDetail />} />
               </Route>
             </Route>

@@ -11,7 +11,9 @@ import {
   removeBatchFromStudent,
   getStudentsWithNoBatch,
   promoteStudents,
-  getStudentsForPromotion
+  getStudentsForPromotion,
+  reassignRollNumbers,
+  demoteStudent
 } from '../controllers/studentController.js';
 import { isAuth } from '../middlewares/isAuth.js';
 import uploadFile from '../middlewares/multer.js';
@@ -450,6 +452,68 @@ router.put('/:id/assign-batch', isAuth, assignBatchToStudent);
  *         description: Some error happened
  */
 router.put('/:id/remove-batch', isAuth, removeBatchFromStudent);
+
+/**
+ * @swagger
+ * /api/students/reassign-rollnos:
+ *   post:
+ *     summary: Reassign roll numbers alphabetically
+ *     tags: [Students]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               standard:
+ *                 type: string
+ *                 enum: ['11', '12', 'Others']
+ *     responses:
+ *       200:
+ *         description: Roll numbers reassigned successfully
+ */
+router.post('/reassign-rollnos', isAuth, reassignRollNumbers);
+
+/**
+ * @swagger
+ * /api/students/{id}/demote:
+ *   post:
+ *     summary: Demote an accidentally promoted student
+ *     tags: [Students]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               targetStandard:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Demoted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 student:
+ *                   $ref: '#/components/schemas/Student'
+ *                 message:
+ *                   type: string
+ */
+router.post('/:id/demote', isAuth, demoteStudent);
 
 /**
  * @swagger
