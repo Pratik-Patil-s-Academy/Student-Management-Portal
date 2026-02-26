@@ -214,17 +214,17 @@ const BatchDetail = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Student Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Mobile</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">School/College</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Student Name</th>
+                                <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Mobile</th>
+                                <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">School/College</th>
+                                <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="px-4 md:px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {batch.students?.map((student) => (
                                 <tr key={student._id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0 h-10 w-10">
                                                 {student.personalDetails?.photoUrl ? (
@@ -235,31 +235,33 @@ const BatchDetail = () => {
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="ml-4">
+                                            <div className="ml-3 md:ml-4">
                                                 <div className="text-sm font-bold text-gray-900">{student.personalDetails?.fullName}</div>
                                                 <div className="text-xs text-gray-500">Roll: {student.rollno || 'N/A'}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.contact?.parentMobile}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-600">{student.contact?.parentMobile}</td>
+                                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {batch.standard === '11' || batch.standard === '12'
                                             ? student.academics?.hsc?.collegeName || student.academics?.ssc?.schoolName
                                             : student.academics?.ssc?.schoolName}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${student.status === 'Admitted' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                             {student.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link to={`/students/${student._id}`} className="text-blue-600 hover:text-blue-900 mr-4 font-semibold">View</Link>
-                                        <button
-                                            onClick={() => handleRemoveStudent(student._id)}
-                                            className="text-red-600 hover:text-red-900 font-semibold"
-                                        >
-                                            Remove
-                                        </button>
+                                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div className="flex flex-row justify-end items-center gap-3 md:gap-4">
+                                            <Link to={`/students/${student._id}`} className="text-blue-600 hover:text-blue-900 font-semibold px-2 py-1 bg-blue-50 rounded-md transition-colors">View</Link>
+                                            <button
+                                                onClick={() => handleRemoveStudent(student._id)}
+                                                className="text-red-600 hover:text-red-900 font-semibold px-2 py-1 bg-red-50 rounded-md transition-colors"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -292,11 +294,10 @@ const BatchDetail = () => {
                                 <button
                                     key={std}
                                     onClick={() => { setStandardTab(std); setSelectedStudents([]); setStudentSearch(''); }}
-                                    className={`flex-1 py-3 text-sm font-semibold transition-all border-b-2 ${
-                                        standardTab === std
-                                            ? 'border-[#2C3E50] text-[#2C3E50] bg-white'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700'
-                                    }`}
+                                    className={`flex-1 py-3 text-sm font-semibold transition-all border-b-2 ${standardTab === std
+                                        ? 'border-[#2C3E50] text-[#2C3E50] bg-white'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                                        }`}
                                 >
                                     Standard {std}
                                 </button>
@@ -307,11 +308,10 @@ const BatchDetail = () => {
                         <div className="flex gap-2 px-4 pt-3 flex-shrink-0">
                             <button
                                 onClick={() => { setAssignTab('unassigned'); setSelectedStudents([]); }}
-                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                                    assignTab === 'unassigned'
-                                        ? 'bg-green-600 text-white'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
+                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${assignTab === 'unassigned'
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
                             >
                                 Unassigned
                                 <span className={`px-1.5 py-0.5 rounded-full text-xs ${assignTab === 'unassigned' ? 'bg-green-500' : 'bg-gray-200 text-gray-500'}`}>
@@ -320,11 +320,10 @@ const BatchDetail = () => {
                             </button>
                             <button
                                 onClick={() => { setAssignTab('assigned'); setSelectedStudents([]); }}
-                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                                    assignTab === 'assigned'
-                                        ? 'bg-orange-500 text-white'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
+                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${assignTab === 'assigned'
+                                    ? 'bg-orange-500 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
                             >
                                 Assigned to other batch
                                 <span className={`px-1.5 py-0.5 rounded-full text-xs ${assignTab === 'assigned' ? 'bg-orange-400' : 'bg-gray-200 text-gray-500'}`}>
@@ -369,16 +368,14 @@ const BatchDetail = () => {
                                         <div
                                             key={student._id}
                                             onClick={() => handleSelectStudent(student._id)}
-                                            className={`flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                                                isSelected
-                                                    ? 'bg-blue-50 border-blue-500 shadow-sm'
-                                                    : 'hover:bg-gray-50 border-gray-200'
-                                            }`}
+                                            className={`flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${isSelected
+                                                ? 'bg-blue-50 border-blue-500 shadow-sm'
+                                                : 'hover:bg-gray-50 border-gray-200'
+                                                }`}
                                         >
                                             {/* Checkbox */}
-                                            <div className={`w-5 h-5 rounded border mr-3 flex-shrink-0 flex items-center justify-center ${
-                                                isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300'
-                                            }`}>
+                                            <div className={`w-5 h-5 rounded border mr-3 flex-shrink-0 flex items-center justify-center ${isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300'
+                                                }`}>
                                                 {isSelected && <span className="text-xs">✓</span>}
                                             </div>
 

@@ -30,7 +30,8 @@ const AttendanceDetail = () => {
         setSubject(data.attendance.subject || 'Maths');
 
         // Fetch current batch students to ensure all are visible
-        const batchData = await getBatchById(data.attendance.batchId._id);
+        const batchIdToFetch = data?.attendance?.batchId?._id || data?.attendance?.batchId;
+        const batchData = await getBatchById(batchIdToFetch);
 
         if (batchData.success) {
           const attendanceStudents = data.attendance.students || [];
@@ -39,26 +40,37 @@ const AttendanceDetail = () => {
           // Create a map of existing attendance status
           const statusMap = new Map();
           attendanceStudents.forEach(s => {
-            statusMap.set(s.studentId._id, s.status);
+            if (s.studentId) {
+              const sid = s.studentId._id || s.studentId;
+              statusMap.set(sid.toString(), s.status);
+            }
           });
 
           // Merge: all current batch students + their saved status (or 'Present' if new)
-          const mergedStudents = batchStudents.map(s => ({
-            studentId: s._id,
-            name: s.personalDetails?.fullName || 'Unknown',
-            rollno: s.rollno,
-            status: statusMap.has(s._id) ? statusMap.get(s._id) : 'Present'
-          }));
+          const mergedStudents = batchStudents.map(s => {
+            const currentStudentId = s._id?.toString() || s._id;
+            return {
+              studentId: currentStudentId,
+              name: s.personalDetails?.fullName || 'Unknown',
+              rollno: s.rollno,
+              status: statusMap.has(currentStudentId) ? statusMap.get(currentStudentId) : 'Present'
+            };
+          });
 
           setStudents(mergedStudents);
         } else {
           // Fallback to only saved students if batch fetch fails
-          setStudents(data.attendance.students.map(s => ({
-            studentId: s.studentId._id,
-            name: s.studentId.personalDetails?.fullName || 'Unknown',
-            rollno: s.studentId.rollno,
-            status: s.status
-          })));
+          setStudents(data.attendance.students
+            .filter(s => s.studentId)
+            .map(s => {
+              const sid = s.studentId._id || s.studentId;
+              return {
+                studentId: sid.toString(),
+                name: s.studentId.personalDetails?.fullName || 'Unknown',
+                rollno: s.studentId.rollno,
+                status: s.status
+              };
+            }));
         }
       }
     } catch (err) {

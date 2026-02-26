@@ -7,7 +7,7 @@ const Batches = () => {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -97,9 +97,9 @@ const Batches = () => {
     setSubmitting(true);
 
     if (formData.days.length === 0) {
-        setModalError('Please select at least one day.');
-        setSubmitting(false);
-        return;
+      setModalError('Please select at least one day.');
+      setSubmitting(false);
+      return;
     }
 
     try {
@@ -142,7 +142,7 @@ const Batches = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-bold text-[#2C3E50]">Batches</h1>
-        <button 
+        <button
           onClick={openCreateModal}
           className="bg-[#2C3E50] hover:bg-[#34495E] text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-all transform hover:scale-105"
         >
@@ -150,63 +150,61 @@ const Batches = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {batches.map(batch => (
-          <div key={batch._id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                   <h2 className="text-xl font-bold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors">{batch.name}</h2>
-                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                     <FaGraduationCap /> Class {batch.standard}
-                   </span>
+          <div key={batch._id} className="bg-white rounded-xl shadow-sm md:shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden group">
+            <div className="p-4 md:p-6">
+              <div className="flex justify-between items-start mb-3 md:mb-4">
+                <div className="pr-2 truncate">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors truncate" title={batch.name}>{batch.name}</h2>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] md:text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                    <FaGraduationCap /> Class {batch.standard}
+                  </span>
                 </div>
                 {/* Actions Dropdown or Buttons */}
-                <div className="flex gap-2">
-                   <button onClick={() => openEditModal(batch)} className="text-gray-400 hover:text-blue-600 transition-colors p-1" title="Edit">
-                     <FaEdit />
-                   </button>
-                   <button onClick={() => handleDelete(batch._id)} className="text-gray-400 hover:text-red-600 transition-colors p-1" title="Delete">
-                     <FaTrash />
-                   </button>
+                <div className="flex gap-1 flex-shrink-0">
+                  <button onClick={() => openEditModal(batch)} className="text-gray-400 hover:text-blue-600 transition-colors p-1.5 rounded-md hover:bg-blue-50" title="Edit">
+                    <FaEdit className="text-sm md:text-base" />
+                  </button>
+                  <button onClick={() => handleDelete(batch._id)} className="text-gray-400 hover:text-red-600 transition-colors p-1.5 rounded-md hover:bg-red-50" title="Delete">
+                    <FaTrash className="text-sm md:text-base" />
+                  </button>
                 </div>
               </div>
 
-              <div className="space-y-3 mb-6">
-                 <div className="flex items-center gap-3 text-gray-600 text-sm">
-                    <FaClock className="text-blue-400 flex-shrink-0" />
-                    <span>{batch.time.startTime} - {batch.time.endTime}</span>
-                 </div>
-                 <div className="flex items-start gap-3 text-gray-600 text-sm">
-                    <FaCalendarAlt className="text-green-400 mt-0.5 flex-shrink-0" />
-                    <div className="flex flex-wrap gap-1">
-                        {batch.days.map(day => (
-                            <span key={day} className="px-1.5 py-0.5 bg-gray-100 rounded text-xs">{day.slice(0, 3)}</span>
-                        ))}
-                    </div>
-                 </div>
-                 <div className="flex items-center gap-3 text-gray-600 text-sm">
-                    <FaUsers className="text-purple-400 flex-shrink-0" />
-                    <span><span className="font-bold text-gray-800">{batch.students?.length || 0}</span> Students Enrolled</span>
-                 </div>
+              <div className="space-y-2.5 md:space-y-3 mb-5 md:mb-6">
+                <div className="flex items-center gap-2.5 md:gap-3 text-gray-600 text-xs md:text-sm">
+                  <FaClock className="text-blue-400 flex-shrink-0 text-sm md:text-base" />
+                  <span className="font-medium text-gray-700">{batch.time.startTime} - {batch.time.endTime}</span>
+                </div>
+                <div className="flex items-center gap-2.5 md:gap-3 text-gray-600 text-xs md:text-sm">
+                  <FaCalendarAlt className="text-green-500 flex-shrink-0 text-sm md:text-base" />
+                  <span className="font-medium text-gray-700 truncate" title={batch.days.join(', ')}>
+                    {batch.days.map(d => d.slice(0, 3)).join(', ')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 md:gap-3 text-gray-600 text-xs md:text-sm">
+                  <FaUsers className="text-purple-400 flex-shrink-0 text-sm md:text-base" />
+                  <span><span className="font-bold text-gray-800">{batch.students?.length || 0}</span> Students</span>
+                </div>
               </div>
 
-               <Link 
-                to={`/batches/${batch._id}`} 
-                className="block w-full text-center bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-2 rounded-lg transition-colors border border-gray-200"
+              <Link
+                to={`/batches/${batch._id}`}
+                className="block w-full text-center bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-2 text-sm md:text-base rounded-lg transition-colors border border-gray-200"
               >
-                Manage Students
+                Manage
               </Link>
             </div>
           </div>
         ))}
-         {batches.length === 0 && (
-            <div className="col-span-full text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                <FaUsers className="text-4xl text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 font-medium">No batches created yet.</p>
-                <button onClick={openCreateModal} className="text-blue-600 hover:underline mt-2 text-sm font-semibold">Create your first batch</button>
-            </div>
-         )}
+        {batches.length === 0 && (
+          <div className="col-span-full text-center py-8 md:py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+            <FaUsers className="text-3xl md:text-4xl text-gray-300 mx-auto mb-2 md:mb-3" />
+            <p className="text-sm md:text-base text-gray-500 font-medium">No batches created yet.</p>
+            <button onClick={openCreateModal} className="text-blue-600 hover:underline mt-2 text-xs md:text-sm font-semibold">Create your first batch</button>
+          </div>
+        )}
       </div>
 
       {/* Modal */}
@@ -217,18 +215,18 @@ const Batches = () => {
               <h2 className="text-xl font-bold">{isEditMode ? 'Edit Batch' : 'Create New Batch'}</h2>
               <button onClick={closeModal} className="hover:bg-white/10 p-1 rounded-full transition-colors"><FaTrash className="transform rotate-45" /></button> {/* Using trash icon rotated as close for simplicity or import FaTimes */}
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {modalError && <div className="p-3 bg-red-100 text-red-700 text-sm rounded-lg">{modalError}</div>}
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Batch Name</label>
-                <input 
-                  type="text" 
-                  name="name" 
-                  value={formData.name} 
-                  onChange={handleInputChange} 
-                  required 
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
                   placeholder="e.g., Morning 11th - A"
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
@@ -236,10 +234,10 @@ const Batches = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Standard</label>
-                <select 
-                  name="standard" 
-                  value={formData.standard} 
-                  onChange={handleInputChange} 
+                <select
+                  name="standard"
+                  value={formData.standard}
+                  onChange={handleInputChange}
                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 >
                   {standardOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -249,58 +247,57 @@ const Batches = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                  <input 
-                    type="time" 
-                    name="startTime" 
-                    value={formData.startTime} 
-                    onChange={handleInputChange} 
-                    required 
+                  <input
+                    type="time"
+                    name="startTime"
+                    value={formData.startTime}
+                    onChange={handleInputChange}
+                    required
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
-                 <div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                  <input 
-                    type="time" 
-                    name="endTime" 
-                    value={formData.endTime} 
-                    onChange={handleInputChange} 
-                    required 
+                  <input
+                    type="time"
+                    name="endTime"
+                    value={formData.endTime}
+                    onChange={handleInputChange}
+                    required
                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-2">Days</label>
-                 <div className="flex flex-wrap gap-2">
-                    {daysOptions.map(day => (
-                        <button
-                            key={day}
-                            type="button"
-                            onClick={() => handleDayToggle(day)}
-                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors border ${
-                                formData.days.includes(day)
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
-                            }`}
-                        >
-                            {day}
-                        </button>
-                    ))}
-                 </div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Days</label>
+                <div className="flex flex-wrap gap-2">
+                  {daysOptions.map(day => (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => handleDayToggle(day)}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors border ${formData.days.includes(day)
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                        }`}
+                    >
+                      {day}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="pt-4 flex justify-end gap-3">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={closeModal}
                   className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={submitting}
                   className="px-6 py-2 bg-[#2C3E50] hover:bg-[#34495E] text-white rounded-lg transition-colors font-semibold shadow-md disabled:opacity-50"
                 >

@@ -2,6 +2,35 @@ import { Attendance } from '../models/attendenceModel.js';
 import { Batch } from '../models/batchModel.js';
 import { Student } from '../models/studentModel.js';
 
+// Helper to group flat student records into batch+date format for frontend
+const groupRecordsByKey = (records) => {
+  const grouped = {};
+
+  for (const record of records) {
+    const key = `${record.batchId?._id || record.batchId}_${new Date(record.date).toISOString()}`;
+    if (!grouped[key]) {
+      grouped[key] = {
+        _id: key, // Pseudo-ID for frontend mapping
+        batchId: record.batchId,
+        subject: record.subject,
+        date: record.date,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt,
+        students: []
+      };
+    }
+
+    if (!grouped[key].students.some(s => (s.studentId?._id?.toString() || s.studentId?.toString()) === (record.studentId?._id?.toString() || record.studentId?.toString()))) {
+      grouped[key].students.push({
+        studentId: record.studentId,
+        status: record.status
+      });
+    }
+  }
+
+  return Object.values(grouped).sort((a, b) => new Date(b.date) - new Date(a.date));
+};
+
 export const validateAttendanceData = async (batchId, date, students) => {
   if (!batchId || !date) {
     throw new Error('Batch ID and date are required');
@@ -15,9 +44,6 @@ export const validateAttendanceData = async (batchId, date, students) => {
   if (!students || !Array.isArray(students) || students.length === 0) {
     throw new Error('At least one student attendance record is required');
   }
-
-  // We removed the existing attendance check here to allow the controller 
-  // to decide whether to create or update.
 
   return batch;
 };
@@ -40,19 +66,17 @@ export const validateStudentsInBatch = async (batch, students) => {
 
 export const createAttendanceRecord = async (batchId, date, students, subject) => {
   const normalizedStudents = students.map(s => ({
+    batchId,
+    subject: subject || 'Maths',
+    date: new Date(date),
     studentId: typeof s === 'string' ? s : s.studentId,
     status: typeof s === 'string' ? 'Present' : (s.status || 'Present')
   }));
 
-  const attendance = await Attendance.create({
-    batchId,
-    subject: subject || 'Maths',
-    date: new Date(date),
-    students: normalizedStudents
-  });
+  const records = await Attendance.insertMany(normalizedStudents);
 
-  await attendance.populate('batchId students.studentId');
-  return attendance;
+  await Attendance.populate(records, { path: 'batchId studentId' });
+  return groupRecordsByKey(records)[0];
 };
 
 export const fetchAttendanceByBatch = async (batchId, startDate, endDate) => {
@@ -69,10 +93,12 @@ export const fetchAttendanceByBatch = async (batchId, startDate, endDate) => {
     if (endDate) filter.date.$lte = new Date(endDate);
   }
 
-  return await Attendance.find(filter)
+  const records = await Attendance.find(filter)
     .populate('batchId')
-    .populate('students.studentId')
+    .populate('studentId')
     .sort({ date: -1 });
+
+  return groupRecordsByKey(records);
 };
 
 export const fetchAttendanceByStudent = async (studentId, startDate, endDate) => {
@@ -81,7 +107,7 @@ export const fetchAttendanceByStudent = async (studentId, startDate, endDate) =>
     throw new Error('Student not found');
   }
 
-  const filter = { 'students.studentId': studentId };
+  const filter = { studentId };
 
   if (startDate || endDate) {
     filter.date = {};
@@ -89,51 +115,75 @@ export const fetchAttendanceByStudent = async (studentId, startDate, endDate) =>
     if (endDate) filter.date.$lte = new Date(endDate);
   }
 
-  const attendance = await Attendance.find(filter)
+  const records = await Attendance.find(filter)
     .populate('batchId')
-    .populate('students.studentId')
+    .populate('studentId')
     .sort({ date: -1 });
 
-  return attendance.map(record => {
-    const studentRecord = record.students.find(
-      s => s.studentId._id.toString() === studentId
-    );
-    return {
-      _id: record._id,
-      batchId: record.batchId,
-      subject: record.subject,
-      date: record.date,
-      status: studentRecord?.status,
-      createdAt: record.createdAt
-    };
-  });
+  return records.map(record => ({
+    _id: record._id,
+    batchId: record.batchId,
+    subject: record.subject,
+    date: record.date,
+    status: record.status,
+    createdAt: record.createdAt
+  }));
 };
 
 export const fetchAttendanceByDate = async (date) => {
-  return await Attendance.find({
+  const records = await Attendance.find({
     date: new Date(date)
   })
     .populate('batchId')
-    .populate('students.studentId')
+    .populate('studentId')
     .sort({ createdAt: -1 });
+
+  return groupRecordsByKey(records);
 };
 
 export const fetchAttendanceById = async (id) => {
-  const attendance = await Attendance.findById(id)
-    .populate('batchId')
-    .populate('students.studentId');
+  const idStr = String(id);
 
-  if (!attendance) {
+  // Try to find by direct ObjectId (legacy/single fallback)
+  if (idStr.length === 24 && !idStr.includes('_')) {
+    const record = await Attendance.findById(idStr).populate('batchId studentId');
+    if (record) return groupRecordsByKey([record])[0];
+  }
+
+  // Parse pseudo-ID (batchId_date)
+  const [batchId, dateStr] = idStr.split('_');
+  if (!batchId || !dateStr) {
+    throw new Error('Invalid attendance ID format');
+  }
+
+  const records = await Attendance.find({
+    batchId,
+    date: new Date(dateStr)
+  })
+    .populate('batchId')
+    .populate('studentId');
+
+  if (!records || records.length === 0) {
     throw new Error('Attendance record not found');
   }
 
-  return attendance;
+  return groupRecordsByKey(records)[0];
 };
 
 export const updateAttendanceRecord = async (id, students, subject) => {
-  const attendance = await Attendance.findById(id);
-  if (!attendance) {
-    throw new Error('Attendance record not found');
+  let batchId, dateObj;
+  const idStr = String(id);
+
+  // Since we use logic based on old IDs vs Pseudo IDs
+  if (idStr.length === 24 && !idStr.includes('_')) {
+    const existing = await Attendance.findById(idStr);
+    if (!existing) throw new Error('Attendance record not found');
+    batchId = existing.batchId;
+    dateObj = existing.date;
+  } else {
+    const [bId, dateStr] = idStr.split('_');
+    batchId = bId;
+    dateObj = new Date(dateStr);
   }
 
   if (students && Array.isArray(students)) {
@@ -144,7 +194,7 @@ export const updateAttendanceRecord = async (id, students, subject) => {
       throw new Error('One or more student IDs are invalid');
     }
 
-    const batch = await Batch.findById(attendance.batchId).populate('students');
+    const batch = await Batch.findById(batchId).populate('students');
     const batchStudentIds = batch.students.map(s => s._id.toString());
     const invalidStudents = studentIds.filter(sid => !batchStudentIds.includes(sid.toString()));
 
@@ -152,28 +202,50 @@ export const updateAttendanceRecord = async (id, students, subject) => {
       throw new Error(`Students with IDs ${invalidStudents.join(', ')} are not in this batch`);
     }
 
-    attendance.students = students.map(s => ({
+    // Delete existing records for this batch+date
+    await Attendance.deleteMany({
+      batchId,
+      date: dateObj
+    });
+
+    // Insert new ones
+    const normalizedStudents = students.map(s => ({
+      batchId,
+      subject: subject || 'Maths',
+      date: dateObj,
       studentId: typeof s === 'string' ? s : s.studentId,
       status: typeof s === 'string' ? 'Present' : (s.status || 'Present')
     }));
+
+    await Attendance.insertMany(normalizedStudents);
+  } else if (subject) {
+    // Just update subjects
+    await Attendance.updateMany(
+      { batchId, date: dateObj },
+      { $set: { subject } }
+    );
   }
 
-  if (subject) {
-    attendance.subject = subject;
-  }
-
-  await attendance.save();
-  await attendance.populate('batchId students.studentId');
-  return attendance;
+  const updatedRecords = await Attendance.find({ batchId, date: dateObj }).populate('batchId studentId');
+  return groupRecordsByKey(updatedRecords)[0];
 };
 
 export const deleteAttendanceRecord = async (id) => {
-  const attendance = await Attendance.findById(id);
-  if (!attendance) {
-    throw new Error('Attendance record not found');
+  let batchId, dateObj;
+  const idStr = String(id);
+
+  if (idStr.length === 24 && !idStr.includes('_')) {
+    const existing = await Attendance.findById(idStr);
+    if (!existing) throw new Error('Attendance record not found');
+    batchId = existing.batchId;
+    dateObj = existing.date;
+  } else {
+    const [bId, dateStr] = idStr.split('_');
+    batchId = bId;
+    dateObj = new Date(dateStr);
   }
 
-  await Attendance.findByIdAndDelete(id);
+  await Attendance.deleteMany({ batchId, date: dateObj });
 };
 
 export const calculateAttendanceStats = async (studentId, startDate, endDate) => {
@@ -182,7 +254,7 @@ export const calculateAttendanceStats = async (studentId, startDate, endDate) =>
     throw new Error('Student not found');
   }
 
-  const filter = { 'students.studentId': studentId };
+  const filter = { studentId };
 
   if (startDate || endDate) {
     filter.date = {};
@@ -190,21 +262,16 @@ export const calculateAttendanceStats = async (studentId, startDate, endDate) =>
     if (endDate) filter.date.$lte = new Date(endDate);
   }
 
-  const attendance = await Attendance.find(filter);
+  const records = await Attendance.find(filter);
 
   let totalPresent = 0;
   let totalAbsent = 0;
 
-  attendance.forEach(record => {
-    const studentRecord = record.students.find(
-      s => s.studentId.toString() === studentId
-    );
-    if (studentRecord) {
-      if (studentRecord.status === 'Present') {
-        totalPresent++;
-      } else {
-        totalAbsent++;
-      }
+  records.forEach(record => {
+    if (record.status === 'Present') {
+      totalPresent++;
+    } else {
+      totalAbsent++;
     }
   });
 
@@ -242,11 +309,8 @@ export const calculateBatchAttendanceStats = async (batchId, startDate, endDate)
     let totalAbsent = 0;
 
     attendanceRecords.forEach(record => {
-      const studentRecord = record.students.find(
-        s => s.studentId.toString() === student._id.toString()
-      );
-      if (studentRecord) {
-        if (studentRecord.status === 'Present') {
+      if (record.studentId.toString() === student._id.toString()) {
+        if (record.status === 'Present') {
           totalPresent++;
         } else {
           totalAbsent++;
@@ -278,8 +342,10 @@ export const fetchAllAttendance = async (startDate, endDate) => {
     if (endDate) filter.date.$lte = new Date(endDate);
   }
 
-  return await Attendance.find(filter)
+  const records = await Attendance.find(filter)
     .populate('batchId')
-    .populate('students.studentId')
+    .populate('studentId')
     .sort({ date: -1 });
+
+  return groupRecordsByKey(records);
 };
