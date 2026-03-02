@@ -1,37 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getOverallPerformance } from '../services/testService';
-import { FaArrowLeft, FaDownload, FaTrophy } from 'react-icons/fa';
+import { FaArrowLeft, FaDownload, FaTrophy, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+const PAGE_SIZE = 10;
+
 const OverallPerformance = () => {
     const navigate = useNavigate();
-    const [perfLimit, setPerfLimit] = useState(10);
     const [perfLoading, setPerfLoading] = useState(true);
     const [perfData, setPerfData] = useState(null);
+    // Which page of tests we're viewing (0-based)
+    const [testPage, setTestPage] = useState(0);
 
     useEffect(() => {
-        loadPerformance(perfLimit);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        loadPerformance();
     }, []);
 
-    const loadPerformance = async (limit) => {
+    const loadPerformance = async () => {
         setPerfLoading(true);
         try {
-            const res = await getOverallPerformance({ limit });
+            // Fetch all tests (large limit) — pagination is done on the frontend
+            const res = await getOverallPerformance({ limit: 1000 });
             if (res.success) setPerfData(res);
         } catch (err) {
             toast.error(err.message || 'Failed to load performance data');
         } finally {
             setPerfLoading(false);
         }
-    };
-
-    const handleLimitChange = async (newLimit) => {
-        setPerfLimit(newLimit);
-        await loadPerformance(newLimit);
     };
 
     const formatDate = (dateStr) => {
@@ -41,34 +39,32 @@ const OverallPerformance = () => {
         });
     };
 
-    const exportPerfCSV = () => {
-        if (!perfData?.students?.length || !perfData?.tests?.length) return;
+    // All tests from backend
+    const allTests = perfData?.tests || [];
+    const totalPages = Math.ceil(allTests.length / PAGE_SIZE);
+    // Tests visible in current page
+    const visibleTests = allTests.slice(testPage * PAGE_SIZE, (testPage + 1) * PAGE_SIZE);
 
-        // Build dynamic headers
-        const testHeaders = perfData.tests.map(t => `${t.title} (${formatDate(t.testDate)}) Max:${t.maxMarks}`);
+    // ─── Export helpers — always use ALL tests ────────────────────────────────
+    const exportPerfCSV = () => {
+        if (!perfData?.students?.length || !allTests.length) return;
+
+        const testHeaders = allTests.map(t => `${t.title} (${formatDate(t.testDate)}) Max:${t.maxMarks}`);
         const headers = ['Student Name', 'Rank', ...testHeaders, 'Total Marks Obtained', 'Total Max Marks', 'Percentage'];
 
         const rows = perfData.students.map(s => {
             const row = [s.name || '-', s.rank];
-
-            // Add test specific scores
-            perfData.tests.forEach(t => {
+            allTests.forEach(t => {
                 const scoreEntry = s.scores.find(score => score.testId === t._id);
                 if (scoreEntry) {
-                    if (scoreEntry.attendanceStatus === 'Absent') {
-                        row.push('Absent');
-                    } else {
-                        row.push(`${scoreEntry.marksObtained}`);
-                    }
+                    row.push(scoreEntry.attendanceStatus === 'Absent' ? 'Absent' : `${scoreEntry.marksObtained}`);
                 } else {
                     row.push('N/A');
                 }
             });
-
             row.push(s.totalMarksObtained);
             row.push(s.totalMaxMarks);
             row.push(`${s.percentage}%`);
-
             return row;
         });
 
@@ -77,30 +73,29 @@ const OverallPerformance = () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `overall_performance_last${perfLimit}tests.csv`;
+        a.download = `overall_performance_all${allTests.length}tests.csv`;
         a.click();
         URL.revokeObjectURL(url);
     };
 
     const exportPerfPDF = () => {
-        if (!perfData?.students?.length || !perfData?.tests?.length) return;
+        if (!perfData?.students?.length || !allTests.length) return;
         const doc = new jsPDF('landscape');
         doc.setFontSize(16);
-        doc.text(`Overall Performance - Last ${perfData.tests.length} Tests`, 14, 16);
+        doc.text(`Overall Performance — All ${allTests.length} Tests`, 14, 16);
         doc.setFontSize(10);
 
-        const testTitles = perfData.tests.map(t => t.title).join(', ');
-        doc.text(`Tests Context: ${testTitles}`, 14, 24, { maxWidth: 270 });
+        const testTitles = allTests.map(t => t.title).join(', ');
+        doc.text(`Tests: ${testTitles}`, 14, 24, { maxWidth: 270 });
 
-        const headRow = ['Student Name', 'Rank', ...perfData.tests.map(t => `${t.title}\n(${formatDate(t.testDate)})`), 'Total %'];
+        const headRow = ['Student Name', 'Rank', ...allTests.map(t => `${t.title}\n(${formatDate(t.testDate)})`), 'Total %'];
 
         const bodyRows = perfData.students.map(s => {
             const row = [s.name, s.rank];
-            perfData.tests.forEach(t => {
+            allTests.forEach(t => {
                 const scoreEntry = s.scores.find(score => score.testId === t._id);
                 if (scoreEntry) {
-                    if (scoreEntry.attendanceStatus === 'Absent') row.push('Absent');
-                    else row.push(`${scoreEntry.marksObtained}/${t.maxMarks}`);
+                    row.push(scoreEntry.attendanceStatus === 'Absent' ? 'Absent' : `${scoreEntry.marksObtained}/${t.maxMarks}`);
                 } else {
                     row.push('-');
                 }
@@ -118,12 +113,11 @@ const OverallPerformance = () => {
             columnStyles: {
                 0: { cellWidth: 30 },
                 1: { halign: 'center', cellWidth: 15 },
-                // other columns align center safely automatically
             },
             bodyStyles: { halign: 'center' }
         });
 
-        doc.save(`overall_performance_last${perfLimit}tests.pdf`);
+        doc.save(`overall_performance_all${allTests.length}tests.pdf`);
     };
 
     return (
@@ -143,70 +137,87 @@ const OverallPerformance = () => {
                             <FaTrophy className="text-amber-500" /> Overall Performance
                         </h1>
                         <p className="text-gray-500 text-sm mt-1">
-                            {perfData ? `Showing data from last ${perfData.tests.length} test${perfData.tests.length !== 1 ? 's' : ''}` : 'Loading...'}
+                            {perfData
+                                ? `${allTests.length} test${allTests.length !== 1 ? 's' : ''} total`
+                                : 'Loading...'}
                         </p>
                     </div>
                 </div>
 
-                {/* Controls */}
-                <div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-600">Last N Tests:</span>
-                        <div className="flex gap-1">
-                            {[5, 10, 15, 20].map(n => (
-                                <button
-                                    key={n}
-                                    onClick={() => handleLimitChange(n)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border ${perfLimit === n
-                                        ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                                        : 'bg-white text-gray-600 border-gray-200 hover:border-amber-300'
-                                        }`}
-                                >
-                                    {n}
-                                </button>
-                            ))}
-                            <input
-                                type="number"
-                                min={1}
-                                max={100}
-                                value={perfLimit}
-                                onChange={e => {
-                                    const v = Math.max(1, Math.min(100, Number(e.target.value)));
-                                    setPerfLimit(v);
-                                }}
-                                onBlur={() => handleLimitChange(perfLimit)}
-                                className="w-16 border rounded-lg px-2 py-1.5 text-xs text-center focus:ring-2 focus:ring-amber-400 focus:outline-none"
-                                placeholder="N"
-                            />
-                        </div>
+                {/* Export buttons */}
+                {perfData?.students?.length > 0 && (
+                    <div className="flex gap-2 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                        <span className="text-xs text-gray-400 self-center mr-1">Export all data:</span>
+                        <button
+                            onClick={exportPerfCSV}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-sm font-semibold transition-colors"
+                            title="Export all tests to CSV"
+                        >
+                            <FaDownload /> CSV
+                        </button>
+                        <button
+                            onClick={exportPerfPDF}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-semibold transition-colors"
+                            title="Export all tests to PDF"
+                        >
+                            <FaDownload /> PDF
+                        </button>
                     </div>
-                    {perfData?.students?.length > 0 && (
-                        <div className="flex gap-2 border-l border-gray-200 pl-4">
-                            <button
-                                onClick={exportPerfCSV}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-sm font-semibold transition-colors"
-                                title="Export to CSV"
-                            >
-                                <FaDownload /> CSV
-                            </button>
-                            <button
-                                onClick={exportPerfPDF}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-semibold transition-colors"
-                                title="Export to PDF"
-                            >
-                                <FaDownload /> PDF
-                            </button>
-                        </div>
-                    )}
-                </div>
+                )}
             </div>
 
-            {/* Tests included info */}
-            {perfData?.tests?.length > 0 && (
+            {/* Test range navigation */}
+            {allTests.length > 0 && (
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm font-semibold text-gray-600">Tests:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                        {Array.from({ length: totalPages }, (_, i) => {
+                            const from = i * PAGE_SIZE + 1;
+                            const to = Math.min((i + 1) * PAGE_SIZE, allTests.length);
+                            return (
+                                <button
+                                    key={i}
+                                    onClick={() => setTestPage(i)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border ${testPage === i
+                                        ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:border-amber-300 hover:text-amber-600'
+                                        }`}
+                                >
+                                    {from}–{to}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {/* Prev / Next arrows */}
+                    <div className="flex gap-1 ml-auto">
+                        <button
+                            onClick={() => setTestPage(p => Math.max(0, p - 1))}
+                            disabled={testPage === 0}
+                            className="p-2 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            title="Previous 10 tests"
+                        >
+                            <FaChevronLeft className="text-xs" />
+                        </button>
+                        <button
+                            onClick={() => setTestPage(p => Math.min(totalPages - 1, p + 1))}
+                            disabled={testPage >= totalPages - 1}
+                            className="p-2 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            title="Next 10 tests"
+                        >
+                            <FaChevronRight className="text-xs" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Tests included info for current page */}
+            {visibleTests.length > 0 && (
                 <div className="px-5 py-4 bg-blue-50 border border-blue-100 rounded-xl shadow-sm">
-                    <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Tests included:</p>
+                    <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">
+                        Showing tests {testPage * PAGE_SIZE + 1}–{Math.min((testPage + 1) * PAGE_SIZE, allTests.length)} of {allTests.length}:
+                    </p>
                     <div className="flex flex-wrap gap-2">
-                        {perfData.tests.map(t => (
+                        {visibleTests.map(t => (
                             <span key={t._id} className="px-3 py-1 bg-white text-blue-700 text-xs rounded-lg border border-blue-200 font-medium whitespace-nowrap shadow-sm">
                                 {t.title} <span className="text-blue-400">({formatDate(t.testDate)})</span>
                             </span>
@@ -239,7 +250,7 @@ const OverallPerformance = () => {
                                     <th className="px-4 py-4 text-center font-bold text-[#2C3E50] whitespace-nowrap border-b border-gray-200">
                                         Rank
                                     </th>
-                                    {perfData.tests.map(test => (
+                                    {visibleTests.map(test => (
                                         <th key={test._id} className="px-4 py-3 text-center font-bold text-gray-700 border-b border-gray-200 min-w-[120px]">
                                             <div className="text-xs text-gray-800 mb-0.5 truncate max-w-[150px] mx-auto" title={test.title}>
                                                 {test.title}
@@ -270,7 +281,7 @@ const OverallPerformance = () => {
                                                 {rankDisplay}
                                             </td>
 
-                                            {perfData.tests.map(test => {
+                                            {visibleTests.map(test => {
                                                 const scoreEntry = student.scores.find(s => s.testId === test._id);
                                                 if (!scoreEntry) {
                                                     return (
@@ -287,7 +298,6 @@ const OverallPerformance = () => {
                                                     );
                                                 }
 
-                                                // Marks display formatting
                                                 const marksRatio = scoreEntry.marksObtained / test.maxMarks;
                                                 const scoreColor = marksRatio > 0.8 ? 'text-green-700' : marksRatio > 0.4 ? 'text-gray-700' : 'text-orange-600';
 
