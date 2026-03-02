@@ -194,13 +194,9 @@ export const updateAttendanceRecord = async (id, students, subject) => {
       throw new Error('One or more student IDs are invalid');
     }
 
-    const batch = await Batch.findById(batchId).populate('students');
-    const batchStudentIds = batch.students.map(s => s._id.toString());
-    const invalidStudents = studentIds.filter(sid => !batchStudentIds.includes(sid.toString()));
-
-    if (invalidStudents.length > 0) {
-      throw new Error(`Students with IDs ${invalidStudents.join(', ')} are not in this batch`);
-    }
+    // Note: We intentionally do NOT check if students are currently in the batch.
+    // Students may have been reassigned to a different batch after this attendance
+    // was recorded. Old attendance records must preserve their historical membership.
 
     // Delete existing records for this batch+date
     await Attendance.deleteMany({

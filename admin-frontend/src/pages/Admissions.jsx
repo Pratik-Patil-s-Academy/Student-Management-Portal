@@ -7,7 +7,7 @@ const Admissions = () => {
   const [admissions, setAdmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // URL Params for persistence
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get('search') || '';
@@ -33,13 +33,13 @@ const Admissions = () => {
 
   const updateFilter = (key, value) => {
     setSearchParams(prev => {
-        const newParams = new URLSearchParams(prev);
-        if (value) {
-            newParams.set(key, value);
-        } else {
-            newParams.delete(key);
-        }
-        return newParams;
+      const newParams = new URLSearchParams(prev);
+      if (value) {
+        newParams.set(key, value);
+      } else {
+        newParams.delete(key);
+      }
+      return newParams;
     });
   };
 
@@ -79,8 +79,8 @@ const Admissions = () => {
         </div>
       </div>
 
-       {/* Banner Note */}
-       <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg shadow-sm">
+      {/* Banner Note */}
+      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg shadow-sm">
         <div className="flex">
           <div className="flex-shrink-0">
             <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
@@ -107,19 +107,19 @@ const Admissions = () => {
             onChange={(e) => updateFilter('search', e.target.value)}
           />
         </div>
-        
+
         <div className="relative w-full md:w-auto min-w-[200px]">
-             <select
-              className="w-full appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
-              value={sortBy}
-              onChange={(e) => updateFilter('sort', e.target.value)}
-            >
-              <option value="date_desc">Date (Newest)</option>
-              <option value="date_asc">Date (Oldest)</option>
-              <option value="name_asc">Name (A-Z)</option>
-              <option value="name_desc">Name (Z-A)</option>
-            </select>
-            <FaSort className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <select
+            className="w-full appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
+            value={sortBy}
+            onChange={(e) => updateFilter('sort', e.target.value)}
+          >
+            <option value="date_desc">Date (Newest)</option>
+            <option value="date_asc">Date (Oldest)</option>
+            <option value="name_asc">Name (A-Z)</option>
+            <option value="name_desc">Name (Z-A)</option>
+          </select>
+          <FaSort className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
         </div>
       </div>
 
@@ -146,11 +146,11 @@ const Admissions = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 flex items-center gap-2">
                     {admission.personalDetails?.photoUrl ? (
-                        <img src={admission.personalDetails.photoUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+                      <img src={admission.personalDetails.photoUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
                     ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                            <FaUserGraduate />
-                        </div>
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                        <FaUserGraduate />
+                      </div>
                     )}
                     {admission.personalDetails?.fullName || 'N/A'}
                   </td>
@@ -160,14 +160,14 @@ const Admissions = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#2C3E50]">
                     {admission.standard}
                   </td>
-                   <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm bg-yellow-100 text-yellow-800">
                       {admission.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link 
-                      to={`/admissions/${admission._id}`} 
+                    <Link
+                      to={`/admissions/${admission._id}`}
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold transition-all group-hover:gap-3"
                     >
                       <FaEye /> Review
@@ -176,7 +176,7 @@ const Admissions = () => {
                 </tr>
               ))}
               {filteredAdmissions.length === 0 && (
-                 <tr>
+                <tr>
                   <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -192,47 +192,37 @@ const Admissions = () => {
         </div>
 
         {/* Mobile Cards */}
-        <div className="md:hidden space-y-4 p-4 bg-gray-50">
-             {filteredAdmissions.map((admission) => (
-                <div key={admission._id} className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 border border-gray-100">
-                     <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center gap-3">
-                           {admission.personalDetails?.photoUrl ? (
-                                <img src={admission.personalDetails.photoUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
-                            ) : (
-                                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                                    <FaUserGraduate />
-                                </div>
-                            )}
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900">{admission.personalDetails?.fullName || 'N/A'}</h3>
-                                <p className="text-xs text-gray-500">{new Date(admission.createdAt).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                        <span className="px-3 py-1 text-xs font-bold rounded-full shadow-sm bg-yellow-100 text-yellow-800">
-                            {admission.status}
-                        </span>
-                     </div>
-                      <div className="space-y-2 text-sm text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg">
-                        <p><span className="font-semibold text-gray-800">Mobile:</span> {admission.contact?.parentMobile || 'N/A'}</p>
-                        <p><span className="font-semibold text-gray-800">Standard:</span> <span className="text-[#2C3E50] font-bold">{admission.standard}</span></p>
-                      </div>
-                       <Link 
-                        to={`/admissions/${admission._id}`} 
-                        className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-semibold shadow-md"
-                      >
-                        <FaEye /> Review Request
-                      </Link>
-                </div>
-             ))}
-             {filteredAdmissions.length === 0 && (
-                <div className="text-center text-gray-500 py-12 bg-white rounded-xl">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
-                    <FaSearch className="text-3xl text-gray-400" />
-                  </div>
-                  <p className="text-lg font-semibold">No pending admissions found</p>
+        <div className="md:hidden space-y-3 p-4 bg-gray-50">
+          {filteredAdmissions.map((admission) => (
+            <div key={admission._id} className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3">
+              {admission.personalDetails?.photoUrl ? (
+                <img src={admission.personalDetails.photoUrl} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0">
+                  <FaUserGraduate />
                 </div>
               )}
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-gray-900 truncate">{admission.personalDetails?.fullName || 'N/A'}</h3>
+                <p className="text-xs text-gray-400">{new Date(admission.createdAt).toLocaleDateString()}</p>
+              </div>
+              <Link
+                to={`/admissions/${admission._id}`}
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-100 hover:bg-yellow-200 text-yellow-800 text-xs font-bold transition-colors"
+              >
+                <FaEye className="text-blue-500" />
+                {admission.status}
+              </Link>
+            </div>
+          ))}
+          {filteredAdmissions.length === 0 && (
+            <div className="text-center text-gray-500 py-12 bg-white rounded-xl">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                <FaSearch className="text-3xl text-gray-400" />
+              </div>
+              <p className="text-lg font-semibold">No pending admissions found</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

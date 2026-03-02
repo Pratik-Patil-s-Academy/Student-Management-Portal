@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAttendanceById, updateAttendance, deleteAttendance } from '../services/attendanceService';
-import { getBatchById } from '../services/batchService';
 import { FaArrowLeft, FaCheckCircle, FaTimesCircle, FaSave, FaTrash, FaCalendarAlt, FaUsers } from 'react-icons/fa';
 
 const AttendanceDetail = () => {
@@ -29,49 +28,24 @@ const AttendanceDetail = () => {
         setAttendance(data.attendance);
         setSubject(data.attendance.subject || 'Maths');
 
-        // Fetch current batch students to ensure all are visible
-        const batchIdToFetch = data?.attendance?.batchId?._id || data?.attendance?.batchId;
-        const batchData = await getBatchById(batchIdToFetch);
-
-        if (batchData.success) {
-          const attendanceStudents = data.attendance.students || [];
-          const batchStudents = batchData.batch.students || [];
-
-          // Create a map of existing attendance status
-          const statusMap = new Map();
-          attendanceStudents.forEach(s => {
-            if (s.studentId) {
-              const sid = s.studentId._id || s.studentId;
-              statusMap.set(sid.toString(), s.status);
-            }
-          });
-
-          // Merge: all current batch students + their saved status (or 'Present' if new)
-          const mergedStudents = batchStudents.map(s => {
-            const currentStudentId = s._id?.toString() || s._id;
+        // Only show students who were recorded in THIS attendance record.
+        // Do NOT merge with current batch members — a student who has since
+        // changed batch should still appear in their old batch's attendance,
+        // and should NOT appear in their new batch's old records.
+        const attendanceStudents = data.attendance.students || [];
+        const recordedStudents = attendanceStudents
+          .filter(s => s.studentId)
+          .map(s => {
+            const sid = s.studentId._id || s.studentId;
             return {
-              studentId: currentStudentId,
-              name: s.personalDetails?.fullName || 'Unknown',
-              rollno: s.rollno,
-              status: statusMap.has(currentStudentId) ? statusMap.get(currentStudentId) : 'Present'
+              studentId: sid.toString(),
+              name: s.studentId.personalDetails?.fullName || 'Unknown',
+              rollno: s.studentId.rollno,
+              status: s.status
             };
           });
 
-          setStudents(mergedStudents);
-        } else {
-          // Fallback to only saved students if batch fetch fails
-          setStudents(data.attendance.students
-            .filter(s => s.studentId)
-            .map(s => {
-              const sid = s.studentId._id || s.studentId;
-              return {
-                studentId: sid.toString(),
-                name: s.studentId.personalDetails?.fullName || 'Unknown',
-                rollno: s.studentId.rollno,
-                status: s.status
-              };
-            }));
-        }
+        setStudents(recordedStudents);
       }
     } catch (err) {
       setError(err.message || 'Failed to fetch attendance record');
@@ -294,37 +268,38 @@ const AttendanceDetail = () => {
         </div>
 
         {/* Students Cards - Mobile */}
-        <div className="md:hidden space-y-3">
+        <div className="md:hidden divide-y divide-gray-100">
           {students.map(student => (
-            <div key={student.studentId} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <p className="font-medium text-gray-800">{student.name}</p>
-                  <p className="text-sm text-gray-600">Roll No: {student.rollno || 'N/A'}</p>
-                </div>
+            <div key={student.studentId} className="flex items-center gap-3 px-4 py-3">
+              {/* Roll + Name */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">{student.name}</p>
+                <p className="text-xs text-gray-400">Roll: {student.rollno || 'N/A'}</p>
               </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => updateStudentStatus(student.studentId, 'Present')}
-                  className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Present'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                    }`}
-                >
-                  <FaCheckCircle className="inline mr-1" /> Present
-                </button>
-                <button
-                  type="button"
-                  onClick={() => updateStudentStatus(student.studentId, 'Absent')}
-                  className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Absent'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                    }`}
-                >
-                  <FaTimesCircle className="inline mr-1" /> Absent
-                </button>
-              </div>
+
+              {/* Present checkbox */}
+              <label className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg cursor-pointer text-xs font-bold select-none transition-colors ${student.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                }`}>
+                <input
+                  type="checkbox"
+                  className="accent-green-500 w-3.5 h-3.5"
+                  checked={student.status === 'Present'}
+                  onChange={() => updateStudentStatus(student.studentId, 'Present')}
+                />
+                P
+              </label>
+
+              {/* Absent checkbox */}
+              <label className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg cursor-pointer text-xs font-bold select-none transition-colors ${student.status === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'
+                }`}>
+                <input
+                  type="checkbox"
+                  className="accent-red-500 w-3.5 h-3.5"
+                  checked={student.status === 'Absent'}
+                  onChange={() => updateStudentStatus(student.studentId, 'Absent')}
+                />
+                A
+              </label>
             </div>
           ))}
         </div>

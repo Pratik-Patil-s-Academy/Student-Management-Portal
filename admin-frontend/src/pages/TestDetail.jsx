@@ -370,7 +370,7 @@ const TestDetail = () => {
             <div className="mt-4 flex flex-wrap gap-2">
               {test.applicableBatches.map(b => (
                 <span key={b._id} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full font-medium border border-blue-100">
-                  {b.name} <span className="text-blue-400">({b.standard})</span>
+                  {b.name} <span className="text-blue-400">({b.standard}th)</span>
                 </span>
               ))}
             </div>
