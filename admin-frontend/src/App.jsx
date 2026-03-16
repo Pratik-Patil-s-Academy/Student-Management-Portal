@@ -1,42 +1,42 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import NotFound from './pages/NotFound';
-import PrivateRoute from './components/PrivateRoute';
-import Layout from './components/Layout';
+import Login from './features/auth/pages/Login';
+import Dashboard from './features/dashboard/pages/Dashboard';
+import NotFound from './features/misc/pages/NotFound';
+import PrivateRoute from './shared/components/PrivateRoute';
+import Layout from './layouts/Layout';
 
 import { Toaster } from 'react-hot-toast';
 
 // Lazy loaded components applicable for deferred loading
-const Inquiries = lazy(() => import('./pages/Inquiries'));
-const InquiryDetail = lazy(() => import('./pages/InquiryDetail'));
-const Admissions = lazy(() => import('./pages/Admissions'));
-const AdmissionDetail = lazy(() => import('./pages/AdmissionDetail'));
-const Students = lazy(() => import('./pages/Students'));
-const StudentDetail = lazy(() => import('./pages/StudentDetail'));
-const Batches = lazy(() => import('./pages/Batches'));
-const BatchDetail = lazy(() => import('./pages/BatchDetail'));
-const Attendance = lazy(() => import('./pages/Attendance'));
-const MarkAttendance = lazy(() => import('./pages/MarkAttendance'));
-const AttendanceDetail = lazy(() => import('./pages/AttendanceDetail'));
-const AttendanceStats = lazy(() => import('./pages/AttendanceStats'));
-const FeeManagement = lazy(() => import('./pages/FeeManagement'));
-const FeeDetail = lazy(() => import('./pages/FeeDetail'));
-const ProcessPayment = lazy(() => import('./pages/ProcessPayment'));
-const Receipt = lazy(() => import('./pages/Receipt'));
-const Tests = lazy(() => import('./pages/Tests'));
-const OverallPerformance = lazy(() => import('./pages/OverallPerformance'));
-const TestDetail = lazy(() => import('./pages/TestDetail'));
-import { MessageLoading } from './components/ui/message-loading';
+const Inquiries = lazy(() => import('./features/inquiry/pages/Inquiries'));
+const InquiryDetail = lazy(() => import('./features/inquiry/pages/InquiryDetail'));
+const Admissions = lazy(() => import('./features/admission/pages/Admissions'));
+const AdmissionDetail = lazy(() => import('./features/admission/pages/AdmissionDetail'));
+const Students = lazy(() => import('./features/student/pages/Students'));
+const StudentDetail = lazy(() => import('./features/student/pages/StudentDetail'));
+const Batches = lazy(() => import('./features/batch/pages/Batches'));
+const BatchDetail = lazy(() => import('./features/batch/pages/BatchDetail'));
+const Attendance = lazy(() => import('./features/attendance/pages/Attendance'));
+const MarkAttendance = lazy(() => import('./features/attendance/pages/MarkAttendance'));
+const AttendanceDetail = lazy(() => import('./features/attendance/pages/AttendanceDetail'));
+const AttendanceStats = lazy(() => import('./features/attendance/pages/AttendanceStats'));
+const FeeManagement = lazy(() => import('./features/fee/pages/FeeManagement'));
+const FeeDetail = lazy(() => import('./features/fee/pages/FeeDetail'));
+const ProcessPayment = lazy(() => import('./features/fee/pages/ProcessPayment'));
+const Receipt = lazy(() => import('./features/fee/pages/Receipt'));
+const Tests = lazy(() => import('./features/test/pages/Tests'));
+const OverallPerformance = lazy(() => import('./features/test/pages/OverallPerformance'));
+const TestDetail = lazy(() => import('./features/test/pages/TestDetail'));
+import { GlobalLoader } from './shared';
 
 const App = () => {
   return (
     <Router>
       <AuthProvider>
         <Toaster position="top-right" />
-        <Suspense fallback={<div className="flex justify-center items-center h-screen"><MessageLoading /></div>}>
+        <Suspense fallback={<GlobalLoader />}>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route element={<PrivateRoute />}>
