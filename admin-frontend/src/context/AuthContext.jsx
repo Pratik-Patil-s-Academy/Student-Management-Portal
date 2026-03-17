@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
         setAdmin(null);
       }
     } catch (error) {
-        console.error("Auth check failed:", error);
+      console.error("Auth check failed:", error);
       setAdmin(null);
     } finally {
       setLoading(false);
