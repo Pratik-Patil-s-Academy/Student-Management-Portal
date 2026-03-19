@@ -1,0 +1,39 @@
+import { Admin } from '../models/admin.model.js';
+import bcrypt from 'bcrypt';
+import generateToken from '../utils/generateToken.js';
+import asyncHandler from '../utils/asyncHandler.js';
+import * as adminService from '../services/admin.service.js';
+
+export const loginAdmin = asyncHandler(async (req, res) => {
+  adminService.validateLoginCredentials(req.body.email, req.body.password);
+
+  const admin = await adminService.authenticateAdmin(req.body.email, req.body.password);
+
+  const token = generateToken(admin);
+
+  res.status(200).json({
+    success: true,
+    token,
+    admin: {
+      id: admin._id,
+      name: admin.name,
+      email: admin.email
+    }
+  });
+});
+
+export const logOutUser = asyncHandler(async (req, res) => {
+  res.json({
+    success: true,
+    message: "Logged out successfully",
+  });
+});
+
+export const getAdminProfile = asyncHandler(async (req, res) => {
+  const admin = await adminService.fetchAdminProfile(req.user._id);
+
+  res.status(200).json({
+    success: true,
+    admin
+  });
+});

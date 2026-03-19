@@ -2,13 +2,13 @@
   "name": "smp",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "seed": "node scripts/createAdmin.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node src/scripts/createAdmin.js"
   },
   "keywords": [],
   "author": "",
@@ -34,7 +34,6 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.13",
     "pdf-parse": "^2.4.5",
-    "react-router-dom": "^7.13.0",
     "streamifier": "^0.1.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
