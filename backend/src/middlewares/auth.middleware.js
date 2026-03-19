@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import { Admin } from "../models/admin.model.js"; //need to change 
+import config from "../config/index.js";
+
 export const isAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -12,7 +14,7 @@ export const isAuth = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
 
-    const decodedData = jwt.verify(token, process.env.JWT_SEC);
+    const decodedData = jwt.verify(token, config.jwtSecret);
 
     if (!decodedData)
       return res.status(403).json({

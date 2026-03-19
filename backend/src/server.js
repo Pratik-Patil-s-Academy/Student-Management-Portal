@@ -5,13 +5,41 @@ import app from './app.js';
 import config from './config/index.js';
 import './config/cloudinary.js';
 
+let server;
+
 connectDb().then(() => {
   createAdmin();
-  app.listen(config.port, () => {
+  server = app.listen(config.port, () => {
     logger.info(`Server started successfully on port ${config.port}`);
     console.log(`Server is running on http://localhost:${config.port}`);
   });
 }).catch((error) => {
   logger.error(`Database connection failed: ${error.message}`, { stack: error.stack });
   process.exit(1);
+});
+
+const exitHandler = () => {
+  if (server) {
+    server.close(() => {
+      logger.info('Server closed gracefully');
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+};
+
+const unexpectedErrorHandler = (error) => {
+  logger.error(`Unexpected Error: ${error.message}`, { stack: error.stack });
+  exitHandler();
+};
+
+process.on('uncaughtException', unexpectedErrorHandler);
+process.on('unhandledRejection', unexpectedErrorHandler);
+
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received');
+  if (server) {
+    server.close();
+  }
 });
