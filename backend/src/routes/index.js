@@ -23,4 +23,12 @@ router.use('/inquiries', inquiryRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/fees', feeRoutes);
 
+// 404 Handler for undefined routes
+router.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `API Route not found: ${req.originalUrl}`
+  });
+});
+
 export default router;

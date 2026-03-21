@@ -7,7 +7,7 @@ import FeeStructureSettings from '../components/FeeStructureSettings';
 import FeeFilters from '../components/FeeFilters';
 import FeeTable from '../components/FeeTable';
 import FeeCard from '../components/FeeCard';
-import FeeCharts from '../components/FeeCharts';
+const FeeCharts = React.lazy(() => import('../components/FeeCharts'));
 import FeeStructureModal from '../components/FeeStructureModal';
 
 const FEE_COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
@@ -196,11 +196,13 @@ const FeeManagement = () => {
       </div>
 
       {/* Charts Section */}
-      <FeeCharts
-        students={filteredStudents}
-        getFeeStatus={getFeeStatus}
-        feeColors={FEE_COLORS}
-      />
+      <React.Suspense fallback={<div className="h-64 bg-white rounded-xl shadow-md animate-pulse"></div>}>
+        <FeeCharts
+          students={filteredStudents}
+          getFeeStatus={getFeeStatus}
+          feeColors={FEE_COLORS}
+        />
+      </React.Suspense>
 
       {/* ── Fee Structure Modal ─────────────────────────────────────────────── */}
       {structureModal && (

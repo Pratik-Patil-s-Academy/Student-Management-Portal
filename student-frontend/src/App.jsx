@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage.jsx";
 import Index from "./pages/Index.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import { MessageLoading } from "./components/ui/message-loading";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const InquiryForm = lazy(() => import("./pages/InquiryForm.jsx"));
 const AdmissionForm = lazy(() => import("./pages/AdmissionForm.jsx"));
@@ -22,15 +23,17 @@ function App() {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Suspense fallback={<div className="flex justify-center items-center h-screen"><MessageLoading /></div>}>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/old-home" element={<Index />} />
-              <Route path="/enquiry" element={<InquiryForm />} />
-              <Route path="/admission" element={<AdmissionForm />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<div className="flex justify-center items-center h-screen"><MessageLoading /></div>}>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/old-home" element={<Index />} />
+                <Route path="/enquiry" element={<InquiryForm />} />
+                <Route path="/admission" element={<AdmissionForm />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

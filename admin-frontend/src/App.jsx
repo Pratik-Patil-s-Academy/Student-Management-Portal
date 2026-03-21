@@ -30,43 +30,46 @@ const Tests = lazy(() => import('./features/test/pages/Tests'));
 const OverallPerformance = lazy(() => import('./features/test/pages/OverallPerformance'));
 const TestDetail = lazy(() => import('./features/test/pages/TestDetail'));
 import { GlobalLoader } from './shared';
+import ErrorBoundary from './shared/components/ErrorBoundary';
 
 const App = () => {
   return (
     <Router>
-      <AuthProvider>
-        <Toaster position="top-right" />
-        <Suspense fallback={<GlobalLoader />}>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route element={<PrivateRoute />}>
-              <Route element={<Layout />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/inquiries" element={<Inquiries />} />
-                <Route path="/inquiries/:id" element={<InquiryDetail />} />
-                <Route path="/admissions" element={<Admissions />} />
-                <Route path="/admissions/:id" element={<AdmissionDetail />} />
-                <Route path="/students" element={<Students />} />
-                <Route path="/students/:id" element={<StudentDetail />} />
-                <Route path="/batches" element={<Batches />} />
-                <Route path="/batches/:id" element={<BatchDetail />} />
-                <Route path="/attendance" element={<Attendance />} />
-                <Route path="/attendance/mark" element={<MarkAttendance />} />
-                <Route path="/attendance/stats" element={<AttendanceStats />} />
-                <Route path="/attendance/:id" element={<AttendanceDetail />} />
-                <Route path="/fees" element={<FeeManagement />} />
-                <Route path="/fees/student/:studentId" element={<FeeDetail />} />
-                <Route path="/fees/payment/:studentId" element={<ProcessPayment />} />
-                <Route path="/fees/receipt/:studentId" element={<Receipt />} />
-                <Route path="/tests" element={<Tests />} />
-                <Route path="/tests/performance" element={<OverallPerformance />} />
-                <Route path="/tests/:testId" element={<TestDetail />} />
+      <ErrorBoundary>
+        <AuthProvider>
+          <Toaster position="top-right" />
+          <Suspense fallback={<GlobalLoader />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route element={<PrivateRoute />}>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/inquiries" element={<Inquiries />} />
+                  <Route path="/inquiries/:id" element={<InquiryDetail />} />
+                  <Route path="/admissions" element={<Admissions />} />
+                  <Route path="/admissions/:id" element={<AdmissionDetail />} />
+                  <Route path="/students" element={<Students />} />
+                  <Route path="/students/:id" element={<StudentDetail />} />
+                  <Route path="/batches" element={<Batches />} />
+                  <Route path="/batches/:id" element={<BatchDetail />} />
+                  <Route path="/attendance" element={<Attendance />} />
+                  <Route path="/attendance/mark" element={<MarkAttendance />} />
+                  <Route path="/attendance/stats" element={<AttendanceStats />} />
+                  <Route path="/attendance/:id" element={<AttendanceDetail />} />
+                  <Route path="/fees" element={<FeeManagement />} />
+                  <Route path="/fees/student/:studentId" element={<FeeDetail />} />
+                  <Route path="/fees/payment/:studentId" element={<ProcessPayment />} />
+                  <Route path="/fees/receipt/:studentId" element={<Receipt />} />
+                  <Route path="/tests" element={<Tests />} />
+                  <Route path="/tests/performance" element={<OverallPerformance />} />
+                  <Route path="/tests/:testId" element={<TestDetail />} />
+                </Route>
               </Route>
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </AuthProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </AuthProvider>
+      </ErrorBoundary>
     </Router>
   );
 };
