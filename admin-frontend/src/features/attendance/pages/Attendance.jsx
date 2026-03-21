@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getAllAttendance, getAttendanceByBatch, getAttendanceByDate, deleteAttendance } from '../services/attendanceService';
 import { getAllBatches } from '../../batch/services/batchService';
-import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaUsers, FaChartBar, FaFilter } from 'react-icons/fa';
+import { FaPlus, FaCalendarAlt, FaChartBar } from 'react-icons/fa';
+import AttendanceFilters from '../components/AttendanceFilters';
+import AttendanceRecordCard from '../components/AttendanceRecordCard';
 
 const Attendance = () => {
   const navigate = useNavigate();
@@ -124,91 +126,36 @@ const Attendance = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-4xl font-bold text-[#2C3E50]">Attendance</h1>
-        <div className="flex flex-wrap gap-3">
+        <h1 className="text-3xl md:text-4xl font-bold text-[#2C3E50]">Attendance</h1>
+        <div className="flex flex-row flex-wrap gap-2 w-full md:w-auto">
           <button
             onClick={() => navigate('/attendance/stats')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-all transform hover:scale-105"
+            className="flex-1 md:flex-none flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 md:px-6 md:py-3 rounded-lg shadow-md transition-all text-sm md:text-base whitespace-nowrap"
           >
             <FaChartBar /> View Statistics
           </button>
           <button
             onClick={() => navigate('/attendance/mark')}
-            className="bg-[#2C3E50] hover:bg-[#34495E] text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-all transform hover:scale-105"
+            className="flex-1 md:flex-none flex justify-center items-center gap-2 bg-[#2C3E50] hover:bg-[#34495E] text-white px-4 py-2.5 md:px-6 md:py-3 rounded-lg shadow-md transition-all text-sm md:text-base whitespace-nowrap"
           >
             <FaPlus /> Mark Attendance
           </button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-xl shadow-md p-4 md:p-6 border border-gray-100">
-        <div className="flex items-center gap-2 mb-4">
-          <FaFilter className="text-gray-600 text-sm md:text-base" />
-          <h2 className="text-base md:text-lg font-semibold text-gray-800">Filters</h2>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          <div className="col-span-2 lg:col-span-1">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Batch</label>
-            <select
-              value={selectedBatch}
-              onChange={(e) => setSelectedBatch(e.target.value)}
-              className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-              <option value="">All Batches</option>
-              {batches.map(batch => (
-                <option key={batch._id} value={batch._id}>{batch.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-span-2 md:col-span-1">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Specific Date</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-2 md:gap-3 mt-4">
-          <button
-            onClick={fetchAttendance}
-            className="flex-1 lg:flex-none lg:px-6 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors font-medium text-sm md:text-base"
-          >
-            Apply
-          </button>
-          <button
-            onClick={handleClearFilters}
-            className="flex-1 lg:flex-none lg:px-6 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg transition-colors font-medium text-sm md:text-base"
-          >
-            Clear
-          </button>
-        </div>
-      </div>
+      <AttendanceFilters
+        batches={batches}
+        selectedBatch={selectedBatch}
+        onBatchChange={setSelectedBatch}
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
+        startDate={startDate}
+        onStartDateChange={setStartDate}
+        endDate={endDate}
+        onEndDateChange={setEndDate}
+        onApply={fetchAttendance}
+        onClear={handleClearFilters}
+      />
 
       {/* Error Message */}
       {error && (
@@ -231,92 +178,15 @@ const Attendance = () => {
             </button>
           </div>
         ) : (
-          attendanceRecords.map(record => {
-            const stats = calculateStats(record.students);
-            return (
-              <div
-                key={record._id}
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
-              >
-                <div className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                    {/* Left Section - Info */}
-                    <div className="flex-1">
-                      <div className="flex items-start gap-4">
-                        <div className="flex-1">
-                          <h3 className="text-xl font-bold text-gray-800 mb-2">
-                            {record.batchId?.name || 'Unknown Batch'}
-                          </h3>
-
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                            <div className="flex items-center gap-2">
-                              <FaCalendarAlt className="text-blue-500" />
-                              <span className="font-medium">{formatDate(record.date)}</span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded font-semibold text-xs">
-                                {record.subject || 'Maths'}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Stats */}
-                          <div className="flex flex-wrap gap-4 mt-4">
-                            <div className="flex items-center gap-2">
-                              <FaUsers className="text-gray-400" />
-                              <span className="text-sm">
-                                <span className="font-bold text-gray-800">{stats.total}</span> Students
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                              <span className="text-sm">
-                                <span className="font-bold text-green-700">{stats.present}</span> Present
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                              <span className="text-sm">
-                                <span className="font-bold text-red-700">{stats.absent}</span> Absent
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <span className={`text-sm font-bold ${stats.percentage >= 75 ? 'text-green-600' :
-                                stats.percentage >= 60 ? 'text-yellow-600' :
-                                  'text-red-600'
-                                }`}>
-                                {stats.percentage}% Attendance
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right Section - Actions */}
-                    <div className="flex md:flex-col gap-2">
-                      <Link
-                        to={`/attendance/${record._id}`}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors text-sm font-medium"
-                      >
-                        <FaEdit /> Edit
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(record._id)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors text-sm font-medium"
-                      >
-                        <FaTrash /> Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })
+          attendanceRecords.map(record => (
+            <AttendanceRecordCard
+              key={record._id}
+              record={record}
+              onDelete={handleDelete}
+              formatDate={formatDate}
+              calculateStats={calculateStats}
+            />
+          ))
         )}
       </div>
     </div>

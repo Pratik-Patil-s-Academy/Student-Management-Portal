@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getAllAdmissions } from '../services/admissionService';
-import { FaSearch, FaSort, FaEye, FaUserGraduate } from 'react-icons/fa';
+import { FaSearch } from 'react-icons/fa';
+import AdmissionFilters from '../components/AdmissionFilters';
+import AdmissionTable from '../components/AdmissionTable';
+import AdmissionCard from '../components/AdmissionCard';
 
 const Admissions = () => {
   const [admissions, setAdmissions] = useState([]);
@@ -95,125 +98,20 @@ const Admissions = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-5 rounded-xl shadow-md flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-1/2">
-          <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by Name or Mobile..."
-            className="w-full pl-11 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300"
-            value={searchTerm}
-            onChange={(e) => updateFilter('search', e.target.value)}
-          />
-        </div>
-
-        <div className="relative w-full md:w-auto min-w-[200px]">
-          <select
-            className="w-full appearance-none pl-4 pr-10 py-3 border-2 border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent transition-all hover:border-gray-300 cursor-pointer"
-            value={sortBy}
-            onChange={(e) => updateFilter('sort', e.target.value)}
-          >
-            <option value="date_desc">Date (Newest)</option>
-            <option value="date_asc">Date (Oldest)</option>
-            <option value="name_asc">Name (A-Z)</option>
-            <option value="name_desc">Name (Z-A)</option>
-          </select>
-          <FaSort className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-        </div>
-      </div>
+      <AdmissionFilters
+        searchTerm={searchTerm}
+        sortBy={sortBy}
+        onFilterChange={updateFilter}
+      />
 
       {/* List */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Applied Date</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Student Name</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Mobile</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Standard</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAdmissions.map((admission) => (
-                <tr key={admission._id} className="hover:bg-blue-50 transition-all duration-200 group">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                    {new Date(admission.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 flex items-center gap-2">
-                    {admission.personalDetails?.photoUrl ? (
-                      <img src={admission.personalDetails.photoUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                        <FaUserGraduate />
-                      </div>
-                    )}
-                    {admission.personalDetails?.fullName || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {admission.contact?.parentMobile || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#2C3E50]">
-                    {admission.standard}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm bg-yellow-100 text-yellow-800">
-                      {admission.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      to={`/admissions/${admission._id}`}
-                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold transition-all group-hover:gap-3"
-                    >
-                      <FaEye /> Review
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-              {filteredAdmissions.length === 0 && (
-                <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <FaSearch className="text-3xl text-gray-400" />
-                      </div>
-                      <p className="text-lg font-semibold">No pending admissions found</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <AdmissionTable admissions={filteredAdmissions} />
 
         {/* Mobile Cards */}
         <div className="md:hidden space-y-3 p-4 bg-gray-50">
           {filteredAdmissions.map((admission) => (
-            <div key={admission._id} className="bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3">
-              {admission.personalDetails?.photoUrl ? (
-                <img src={admission.personalDetails.photoUrl} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0">
-                  <FaUserGraduate />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-gray-900 truncate">{admission.personalDetails?.fullName || 'N/A'}</h3>
-                <p className="text-xs text-gray-400">{new Date(admission.createdAt).toLocaleDateString()}</p>
-              </div>
-              <Link
-                to={`/admissions/${admission._id}`}
-                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-100 hover:bg-yellow-200 text-yellow-800 text-xs font-bold transition-colors"
-              >
-                <FaEye className="text-blue-500" />
-                {admission.status}
-              </Link>
-            </div>
+            <AdmissionCard key={admission._id} admission={admission} />
           ))}
           {filteredAdmissions.length === 0 && (
             <div className="text-center text-gray-500 py-12 bg-white rounded-xl">

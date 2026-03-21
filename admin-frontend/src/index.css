@@ -2,11 +2,11 @@
 
 @layer base {
   :root {
-    --primary: 99 102 241;
+    --primary: 44 62 80;
   }
 }
 
 @theme {
-  --color-primary: #6366f1;
-  --color-secondary: #a855f7;
+  --color-primary: #2C3E50;
+  --color-secondary: #3498DB;
 }

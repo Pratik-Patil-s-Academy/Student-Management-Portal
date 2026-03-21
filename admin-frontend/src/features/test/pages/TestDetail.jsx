@@ -578,20 +578,20 @@ const TestDetail = () => {
                 <p className="text-xs mt-1">Make sure students are assigned to the selected batches.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-50 text-left">
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide rounded-l-lg">Student</th>
+              <div className="max-h-[500px] overflow-y-auto overflow-x-auto rounded-lg border border-gray-100">
+                <table className="w-full text-sm relative">
+                  <thead className="bg-[#f8fafc] text-left sticky top-0 z-10 shadow-sm">
+                    <tr>
+                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Student</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Roll No</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Attendance</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                         Marks <span className="text-gray-400 font-normal">(/ {test.maxMarks})</span>
                       </th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide rounded-r-lg">Remark</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Remark</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-100 bg-white">
                     {scoreEntries.map((entry, idx) => (
                       <tr key={entry.studentId} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3 font-medium text-gray-800">{entry.name}</td>
@@ -654,23 +654,24 @@ const TestDetail = () => {
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-50 text-left">
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide rounded-l-lg">Rank</th>
+              <div className="max-h-[500px] overflow-y-auto overflow-x-auto rounded-lg border border-gray-100">
+                {/* Desktop View */}
+                <table className="w-full text-sm hidden md:table relative">
+                  <thead className="bg-[#f8fafc] text-left sticky top-0 z-10 shadow-sm">
+                    <tr>
+                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Rank</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Student</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Roll No</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Marks</th>
                       <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">%</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide rounded-r-lg">Remark</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Remark</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-100 bg-white">
                     {getRankedScores().map((score, idx) => {
                       const pct = ((score.marksObtained / test.maxMarks) * 100).toFixed(1);
                       const isTop3 = typeof score.rank === 'number' && score.rank <= 3;
-                      const rankDisplay = score.rank === 1 ? '🥇' : score.rank === 2 ? '🥈' : score.rank === 3 ? '🥉' : score.rank;
+                      const rankDisplay = score.rank === 1 ? '🥇' : score.rank === 2 ? '🥈' : score.rank === 3 ? '🥉' : `#${score.rank}`;
                       return (
                         <tr key={score._id || idx} className={`hover:bg-gray-50 transition-colors ${isTop3 ? 'bg-yellow-50/40' : ''}`}>
                           <td className="px-4 py-3 font-bold text-gray-700 text-base">{rankDisplay}</td>
@@ -690,6 +691,41 @@ const TestDetail = () => {
                     })}
                   </tbody>
                 </table>
+
+                {/* Mobile View */}
+                <div className="md:hidden divide-y divide-gray-100 bg-white">
+                  {getRankedScores().map((score, idx) => {
+                    const pct = ((score.marksObtained / test.maxMarks) * 100).toFixed(1);
+                    const isTop3 = typeof score.rank === 'number' && score.rank <= 3;
+                    const rankDisplay = score.rank === 1 ? '🥇' : score.rank === 2 ? '🥈' : score.rank === 3 ? '🥉' : `#${score.rank}`;
+                    return (
+                      <div key={score._id || idx} className={`p-4 flex flex-col gap-2 ${isTop3 ? 'bg-yellow-50/40' : ''}`}>
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center bg-gray-100 text-gray-700 font-bold w-10 h-10 rounded-full text-lg shadow-sm border border-gray-200 shrink-0">
+                              {rankDisplay}
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-800 text-sm leading-tight">{score.studentId?.personalDetails?.fullName || '—'}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">Roll No: {score.studentId?.rollno || '—'}</p>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="font-bold text-gray-800 text-base">
+                              {score.marksObtained} <span className="text-gray-400 text-[10px] font-normal">/ {test.maxMarks}</span>
+                            </p>
+                            <p className={`text-xs font-bold leading-none ${getPercentageColor(pct)}`}>{pct}%</p>
+                          </div>
+                        </div>
+                        {score.remark && (
+                          <div className="mt-1 bg-gray-50 px-3 py-2 rounded-lg text-xs border border-gray-100">
+                            <span className="font-semibold text-gray-600">Remark:</span> <span className="text-gray-500">{score.remark}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>

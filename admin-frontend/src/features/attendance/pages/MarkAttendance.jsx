@@ -445,40 +445,41 @@ const MarkAttendance = () => {
             </div>
 
             {/* Students Cards - Mobile */}
-            <div className="md:hidden space-y-3">
+            <div className="md:hidden divide-y divide-gray-100">
               {students.map(student => (
-                <div key={student.studentId} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="font-medium text-gray-800">{student.name}</p>
-                      <p className="text-sm text-gray-600">Roll No: {student.rollno || 'N/A'}</p>
-                      {markingMode === 'class' && (
-                        <p className="text-sm text-blue-600">Batch: {student.batchName}</p>
-                      )}
-                    </div>
+                <div key={student.studentId} className="flex items-center gap-3 px-4 py-3">
+                  {/* Roll + Name */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 truncate">{student.name}</p>
+                    <p className="text-xs text-gray-400">Roll: {student.rollno || 'N/A'}</p>
+                    {markingMode === 'class' && (
+                      <p className="text-xs text-blue-600">Batch: {student.batchName}</p>
+                    )}
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => updateStudentStatus(student.studentId, 'Present')}
-                      className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Present'
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-200 text-gray-600'
-                        }`}
-                    >
-                      <FaCheckCircle className="inline mr-1" /> Present
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateStudentStatus(student.studentId, 'Absent')}
-                      className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${student.status === 'Absent'
-                        ? 'bg-red-500 text-white'
-                        : 'bg-gray-200 text-gray-600'
-                        }`}
-                    >
-                      <FaTimesCircle className="inline mr-1" /> Absent
-                    </button>
-                  </div>
+
+                  {/* Present checkbox */}
+                  <label className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg cursor-pointer text-xs font-bold select-none transition-colors ${student.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                    <input
+                      type="checkbox"
+                      className="accent-green-500 w-3.5 h-3.5"
+                      checked={student.status === 'Present'}
+                      onChange={() => updateStudentStatus(student.studentId, 'Present')}
+                    />
+                    P
+                  </label>
+
+                  {/* Absent checkbox */}
+                  <label className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg cursor-pointer text-xs font-bold select-none transition-colors ${student.status === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                    <input
+                      type="checkbox"
+                      className="accent-red-500 w-3.5 h-3.5"
+                      checked={student.status === 'Absent'}
+                      onChange={() => updateStudentStatus(student.studentId, 'Absent')}
+                    />
+                    A
+                  </label>
                 </div>
               ))}
             </div>
@@ -500,6 +501,14 @@ const MarkAttendance = () => {
                   <p className="text-sm text-gray-600">Absent</p>
                   <p className="text-2xl font-bold text-red-600">
                     {students.filter(s => s.status === 'Absent').length}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-600">Attendance %</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {students.length > 0
+                      ? ((students.filter(s => s.status === 'Present').length / students.length) * 100).toFixed(1)
+                      : 0}%
                   </p>
                 </div>
               </div>

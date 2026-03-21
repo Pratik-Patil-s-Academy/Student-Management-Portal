@@ -9,6 +9,9 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 
+import StatCard from '../components/StatCard';
+import CustomTooltip from '../components/CustomTooltip';
+
 const FEE_COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
 const STD_COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4'];
 
@@ -43,37 +46,6 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
-  const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
-    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-lg ${color.bg} ${color.text}`}>
-          <Icon size={24} />
-        </div>
-        {subtext && <span className="text-xs text-gray-500 font-medium bg-gray-50 px-2 py-1 rounded-full">{subtext}</span>}
-      </div>
-      <div>
-        <p className="text-sm text-gray-500 font-medium mb-1">{title}</p>
-        <h3 className="text-2xl font-bold text-gray-800">{value}</h3>
-      </div>
-    </div>
-  );
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-2 text-sm">
-          {label && <p className="font-semibold text-gray-700 mb-1">{label}</p>}
-          {payload.map((p, i) => (
-            <p key={i} style={{ color: p.color || p.fill }}>
-              {p.name}: <strong>{p.value}</strong>
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
@@ -87,28 +59,28 @@ const Dashboard = () => {
   const hasTrendData = charts.admissionTrend?.some(d => d.count > 0);
 
   return (
-    <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
+    <div className="p-4 md:p-6 space-y-6 md:space-y-8 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
-          <p className="text-gray-500 mt-1">Welcome back, {admin?.name || 'Admin'}!</p>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800">Dashboard Overview</h2>
+          <p className="text-sm md:text-base text-gray-500 mt-0.5 md:mt-1">Welcome back, {admin?.name || 'Admin'}!</p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500 bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
-          <Calendar size={16} />
-          {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        <div className="flex items-center gap-2 text-xs md:text-sm text-gray-500 bg-white px-3 py-2 md:px-4 md:py-2 rounded-lg shadow-sm border border-gray-100 self-start md:self-auto">
+          <Calendar size={16} className="shrink-0" />
+          <span className="truncate">{new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-100 flex items-center gap-2">
-          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+        <div className="bg-red-50 text-red-600 p-3 md:p-4 rounded-lg border border-red-100 flex items-center gap-2 text-sm">
+          <div className="w-2 h-2 bg-red-500 rounded-full shrink-0"></div>
           {error}
         </div>
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
         <StatCard title="Total Admissions" value={stats.totalAdmissions} icon={FileText} color={{ bg: 'bg-blue-50', text: 'text-blue-600' }} />
         <StatCard title="Pending Approvals" value={stats.pendingAdmissions} icon={Clock} color={{ bg: 'bg-amber-50', text: 'text-amber-600' }} subtext="Action Required" />
         <StatCard title="Active Batches" value={stats.totalBatches} icon={BookOpen} color={{ bg: 'bg-emerald-50', text: 'text-emerald-600' }} />
@@ -141,9 +113,9 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Monthly Admissions Trend */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <TrendingUp size={18} className="text-blue-500" />
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+          <h3 className="text-sm md:text-base font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2">
+            <TrendingUp size={18} className="text-blue-500 shrink-0" />
             Monthly Admissions (Last 6 Months)
           </h3>
           {hasTrendData ? (
@@ -164,9 +136,9 @@ const Dashboard = () => {
         </div>
 
         {/* Fee Status Donut */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <DollarSign size={18} className="text-green-500" />
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+          <h3 className="text-sm md:text-base font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2">
+            <DollarSign size={18} className="text-green-500 shrink-0" />
             Fee Collection Status
           </h3>
           {hasFeeData ? (
@@ -209,9 +181,9 @@ const Dashboard = () => {
 
       {/* Standard Distribution */}
       {hasStdData && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Users size={18} className="text-indigo-500" />
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+          <h3 className="text-sm md:text-base font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2">
+            <Users size={18} className="text-indigo-500 shrink-0" />
             Students by Standard
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
