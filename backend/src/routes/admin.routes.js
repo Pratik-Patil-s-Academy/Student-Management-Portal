@@ -1,6 +1,7 @@
 import express from 'express';
 import { getAdminProfile, loginAdmin, logOutUser } from '../controllers/admin.controller.js';
 import { isAuth } from '../middlewares/auth.middleware.js';
+import { authLimiter } from '../middlewares/rateLimiter.middleware.js';
 
 const router = express.Router();
 
@@ -39,7 +40,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.post('/login', loginAdmin);
+router.post('/login', authLimiter, loginAdmin);
 
 /**
  * @swagger
