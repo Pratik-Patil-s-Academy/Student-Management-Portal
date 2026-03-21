@@ -149,6 +149,10 @@ const AdmissionDetail = () => {
                  <span className="font-semibold text-gray-500">Student Mobile</span>
                  <span className="text-blue-600 font-medium">{contact.studentMobile || 'N/A'}</span>
                </div>
+               <div className="flex justify-between border-b border-gray-100 pb-2">
+                 <span className="font-semibold text-gray-500">WhatsApp Number</span>
+                 <span className="text-green-600 font-medium">{contact.whatsappNumber || 'N/A'}</span>
+               </div>
                 <div className="flex justify-between border-b border-gray-100 pb-2">
                  <span className="font-semibold text-gray-500">Parent Mobile</span>
                  <span className="text-blue-600 font-medium">{contact.parentMobile || 'N/A'}</span>

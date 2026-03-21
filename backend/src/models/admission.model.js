@@ -27,6 +27,7 @@ const admissionSchema = new mongoose.Schema({
   contact: {
     parentMobile: { type: String, required: true },
     studentMobile: { type: String },
+    whatsappNumber: { type: String, required: true },
     email: { type: String }
   },
 

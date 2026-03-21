@@ -105,6 +105,7 @@ const StudentDetail = () => {
     motherOccupation: s.parents?.mother?.occupation || '',
     parentMobile: s.contact?.parentMobile || '',
     studentMobile: s.contact?.studentMobile || '',
+    whatsappNumber: s.contact?.whatsappNumber || '',
     email: s.contact?.email || '',
     standard: s.standard || '',
     rollno: s.rollno || '',
@@ -423,6 +424,7 @@ const StudentDetail = () => {
                   <div className="space-y-3 text-sm">
                     {[
                       { label: 'Student Mobile', name: 'studentMobile', val: student.contact?.studentMobile },
+                      { label: 'WhatsApp Number', name: 'whatsappNumber', val: student.contact?.whatsappNumber },
                       { label: 'Parent Mobile', name: 'parentMobile', val: student.contact?.parentMobile },
                       { label: 'Email', name: 'email', val: student.contact?.email },
                     ].map(f => (

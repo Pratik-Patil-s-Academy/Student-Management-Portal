@@ -33,6 +33,7 @@ const inquirySchema = z.object({
   motherOccupation: z.string().max(100).optional(),
   parentMobile: z.string().trim().min(10, "Parent mobile is required").max(15),
   studentMobile: z.string().max(15).optional(),
+  whatsappNumber: z.string().trim().min(0, "WhatsApp number is required").max(15).refine((val) => val.length >= 10, { message: "WhatsApp number must be at least 10 digits" }),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   reference: z.string().max(200).optional(),
   interestedStudentNote: z.string().max(1000).optional(),
@@ -113,6 +114,7 @@ function InquiryForm() {
         contact: {
           parentMobile: data.parentMobile,
           studentMobile: data.studentMobile,
+          whatsappNumber: data.whatsappNumber,
           email: data.email,
         },
         reference: data.reference,
@@ -294,6 +296,13 @@ function InquiryForm() {
                     <Input
                       {...register("studentMobile")}
                       placeholder="Student mobile number"
+                    />
+                  </div>
+                  <div className={fieldClass}>
+                    <Label>WhatsApp Number *</Label>
+                    <Input
+                      {...register("whatsappNumber")}
+                      placeholder="WhatsApp number"
                     />
                   </div>
                   <div className={fieldClass}>
