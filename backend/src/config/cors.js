@@ -4,7 +4,8 @@ const corsOptions = {
     'http://localhost:5176', 'http://localhost:5500', 'https://ppacademy.vercel.app', 
     'https://temp-smp.vercel.app', 'https://pratikpatilsacademy.vercel.app',
     'https://student-management-portal1.vercel.app', 'https://smp-liart.vercel.app',
-    'https://student-management-portal-green.vercel.app'
+    'https://student-management-portal-green.vercel.app',
+    'https://student-management-portal-5cdr.vercel.app'
   ],
   credentials: true,
   optionsSuccessStatus: 200,
