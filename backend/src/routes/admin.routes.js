@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAdminProfile, loginAdmin, logOutUser } from '../controllers/admin.controller.js';
+import { getAdminProfile, loginAdmin, logOutUser, refreshAccessToken } from '../controllers/admin.controller.js';
 import { isAuth } from '../middlewares/auth.middleware.js';
 import { authLimiter } from '../middlewares/rateLimiter.middleware.js';
 
@@ -55,6 +55,25 @@ router.post('/login', authLimiter, loginAdmin);
  *         description: Internal server error
  */
 router.post('/logout', logOutUser);
+
+/**
+ * @swagger
+ * /api/admin/refresh:
+ *   post:
+ *     summary: Refresh access token using refresh token 
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: Successfully refreshed token
+ *       401:
+ *         description: Refresh token missing
+ *       403:
+ *         description: Invalid or expired refresh token
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/refresh', refreshAccessToken);
+
 
 /**
  * @swagger
