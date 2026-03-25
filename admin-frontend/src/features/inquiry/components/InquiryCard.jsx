@@ -17,9 +17,12 @@ const InquiryCard = ({
           {inquiry.status}
         </span>
       </div>
-      <div className="space-y-2 text-sm text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg">
-        <p><span className="font-semibold text-gray-800">Mobile:</span> {inquiry.contact?.parentMobile}</p>
-        <p><span className="font-semibold text-gray-800">Standard:</span> <span className="text-[#2C3E50] font-bold">{inquiry.standard}</span></p>
+      <div className="space-y-1.5 text-sm text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg">
+        <p className="flex justify-between items-center"><span className="font-semibold text-gray-800">Mobile:</span> <span>{inquiry.contact?.parentMobile}</span></p>
+        {inquiry.contact?.whatsappNumber && (
+            <p className="flex justify-between items-center"><span className="font-semibold text-gray-800">WhatsApp:</span> <span className="text-green-600 font-medium">{inquiry.contact?.whatsappNumber}</span></p>
+        )}
+        <p className="flex justify-between items-center"><span className="font-semibold text-gray-800">Standard:</span> <span className="text-[#2C3E50] font-bold">{inquiry.standard}</span></p>
       </div>
       <Link
         to={`/inquiries/${inquiry._id}`}

@@ -27,6 +27,7 @@ const inquirySchema = new mongoose.Schema({
   contact: {
     parentMobile: { type: String, required: true },
     studentMobile: String,
+    whatsappNumber: { type: String, required: true },
     email: String
   },
 

@@ -135,7 +135,7 @@ export const fetchStudentByRollNo = async (rollno) => {
   return student;
 };
 
-export const validateStudentUpdate = async (studentId, rollno, parentMobile, whatsappNumber, studentMobile, email) => {
+export const validateStudentUpdate = async (studentId, rollno, parentMobile, studentMobile, whatsappNumber, email) => {
   if (parentMobile && !/^[0-9]{10}$/.test(parentMobile)) {
     throw new Error('Valid 10-digit parent mobile number is required');
   }
@@ -146,6 +146,10 @@ export const validateStudentUpdate = async (studentId, rollno, parentMobile, wha
 
   if (studentMobile && !/^[0-9]{10}$/.test(studentMobile)) {
     throw new Error('Student mobile must be 10 digits');
+  }
+
+  if (!whatsappNumber || !/^[0-9]{10}$/.test(whatsappNumber)) {
+    throw new Error('Valid 10-digit WhatsApp number is required');
   }
 
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

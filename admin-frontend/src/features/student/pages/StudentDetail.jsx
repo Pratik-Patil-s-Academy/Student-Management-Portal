@@ -424,7 +424,7 @@ const StudentDetail = () => {
                   <div className="space-y-3 text-sm">
                     {[
                       { label: 'Parent Mobile', name: 'parentMobile', val: student.contact?.parentMobile },
-                      { label: 'WhatsApp', name: 'whatsappNumber', val: student.contact?.whatsappNumber },
+                      { label: 'WhatsApp Number', name: 'whatsappNumber', val: student.contact?.whatsappNumber },
                       { label: 'Student Mobile', name: 'studentMobile', val: student.contact?.studentMobile },
                       { label: 'Email', name: 'email', val: student.contact?.email },
                     ].map(f => (

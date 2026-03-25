@@ -8,6 +8,7 @@ export const validateAdmissionData = (data) => {
   const fullName = data.personalDetails?.fullName || data.fullName;
   const parentMobile = data.contact?.parentMobile || data.parentMobile;
   const studentMobile = data.contact?.studentMobile || data.studentMobile;
+  const whatsappNumber = data.contact?.whatsappNumber || data.whatsappNumber;
   const email = data.contact?.email || data.email;
   const gender = data.personalDetails?.gender || data.gender;
   const standard = data.standard;
@@ -20,8 +21,8 @@ export const validateAdmissionData = (data) => {
     throw new Error('Valid 10-digit parent mobile number is required');
   }
 
-  if (studentMobile && !/^[0-9]{10}$/.test(studentMobile)) {
-    throw new Error('Student mobile must be 10 digits');
+  if (!whatsappNumber || !/^[0-9]{10}$/.test(whatsappNumber)) {
+    throw new Error('Valid 10-digit WhatsApp number is required');
   }
 
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -111,6 +112,7 @@ export const createAdmissionRecord = async (data, photoUrl) => {
       contact: {
         parentMobile: data.contact?.parentMobile || '',
         studentMobile: data.contact?.studentMobile || '',
+        whatsappNumber: data.contact?.whatsappNumber || '',
         email: data.contact?.email?.trim() || ''
       },
       academics: {
@@ -142,7 +144,7 @@ export const createAdmissionRecord = async (data, photoUrl) => {
     const {
       fullName, address, dob, gender, caste,
       fatherName, fatherOccupation, motherName, motherOccupation,
-      parentMobile, studentMobile, email,
+      parentMobile, studentMobile, whatsappNumber, email,
       sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
       hscBoard, hscCollegeName, hscPercentageOrCGPA, hscMathsMarks,
       reference, admissionDate, targetExamination, standard, batch, rollno
@@ -170,6 +172,7 @@ export const createAdmissionRecord = async (data, photoUrl) => {
       contact: {
         parentMobile,
         studentMobile: studentMobile || '',
+        whatsappNumber: whatsappNumber || '',
         email: email?.trim() || ''
       },
       academics: {

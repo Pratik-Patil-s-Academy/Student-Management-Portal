@@ -151,6 +151,11 @@ const InquiryDetail = () => {
                 <span className="text-blue-600 font-medium">{inquiry.contact?.studentMobile || 'N/A'}</span>
               </div>
               <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <FaPhone className="mt-1 text-green-600" />
+                <span className="font-semibold min-w-[100px]">WhatsApp:</span>
+                <span className="text-green-600 font-medium">{inquiry.contact?.whatsappNumber || 'N/A'}</span>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                 <span className="font-semibold min-w-[100px]">Email:</span>
                 <span className="text-blue-600">{inquiry.contact?.email || 'N/A'}</span>
               </div>
