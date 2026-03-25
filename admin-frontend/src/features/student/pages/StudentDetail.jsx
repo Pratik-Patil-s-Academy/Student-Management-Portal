@@ -104,6 +104,7 @@ const StudentDetail = () => {
     motherName: s.parents?.mother?.name || '',
     motherOccupation: s.parents?.mother?.occupation || '',
     parentMobile: s.contact?.parentMobile || '',
+    whatsappNumber: s.contact?.whatsappNumber || '',
     studentMobile: s.contact?.studentMobile || '',
     email: s.contact?.email || '',
     standard: s.standard || '',
@@ -422,8 +423,9 @@ const StudentDetail = () => {
                   <h3 className="font-bold text-[#2C3E50] mb-4">Contact</h3>
                   <div className="space-y-3 text-sm">
                     {[
-                      { label: 'Student Mobile', name: 'studentMobile', val: student.contact?.studentMobile },
                       { label: 'Parent Mobile', name: 'parentMobile', val: student.contact?.parentMobile },
+                      { label: 'WhatsApp', name: 'whatsappNumber', val: student.contact?.whatsappNumber },
+                      { label: 'Student Mobile', name: 'studentMobile', val: student.contact?.studentMobile },
                       { label: 'Email', name: 'email', val: student.contact?.email },
                     ].map(f => (
                       <div key={f.name}>

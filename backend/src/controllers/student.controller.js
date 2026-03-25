@@ -46,7 +46,7 @@ export const getStudentByRollNo = asyncHandler(async (req, res) => {
 export const updateStudent = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  await studentService.validateStudentUpdate(id, req.body.rollno, req.body.parentMobile, req.body.studentMobile, req.body.email);
+  await studentService.validateStudentUpdate(id, req.body.rollno, req.body.parentMobile, req.body.whatsappNumber, req.body.studentMobile, req.body.email);
 
   const student = await studentService.fetchStudentById(id);
   const photoUrl = await studentService.uploadStudentPhotoUpdate(req.file, student.personalDetails.photoUrl);

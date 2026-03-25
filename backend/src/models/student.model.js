@@ -22,6 +22,7 @@ const studentSchema = new mongoose.Schema({
   // ===== Contact =====
   contact: {
     parentMobile: { type: String, required: true },
+    whatsappNumber: { type: String, required: true },
     studentMobile: { type: String },
     email: { type: String }
   },

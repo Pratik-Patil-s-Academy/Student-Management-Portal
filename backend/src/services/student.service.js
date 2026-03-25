@@ -5,7 +5,7 @@ import getDataUrl from '../utils/urlGenerator.js';
 import cloudinary from '../config/cloudinary.js';
 
 export const validateStudentCreate = async (data) => {
-  const { fullName, parentMobile, standard } = data;
+  const { fullName, parentMobile, whatsappNumber, standard } = data;
 
   if (!fullName || fullName.trim().length < 2) {
     throw new Error('Full name is required (minimum 2 characters)');
@@ -13,6 +13,10 @@ export const validateStudentCreate = async (data) => {
 
   if (!parentMobile || !/^[0-9]{10}$/.test(parentMobile)) {
     throw new Error('Valid 10-digit parent mobile number is required');
+  }
+
+  if (!whatsappNumber || !/^[0-9]{10}$/.test(whatsappNumber)) {
+    throw new Error('Valid 10-digit WhatsApp number is required');
   }
 
   if (!standard || !['11', '12', 'Others'].includes(standard)) {
@@ -30,7 +34,7 @@ export const createStudentRecord = async (data, file) => {
   const {
     fullName, address, dob, gender, caste,
     fatherName, fatherOccupation, motherName, motherOccupation,
-    parentMobile, studentMobile, email,
+    parentMobile, whatsappNumber, studentMobile, email,
     sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
     hscBoard, hscCollegeName, hscPercentageOrCGPA, hscMathsMarks,
     reference, admissionDate, targetExamination,
@@ -66,6 +70,7 @@ export const createStudentRecord = async (data, file) => {
     },
     contact: {
       parentMobile,
+      whatsappNumber,
       studentMobile: studentMobile || '',
       email: email?.trim() || ''
     },
@@ -130,9 +135,13 @@ export const fetchStudentByRollNo = async (rollno) => {
   return student;
 };
 
-export const validateStudentUpdate = async (studentId, rollno, parentMobile, studentMobile, email) => {
+export const validateStudentUpdate = async (studentId, rollno, parentMobile, whatsappNumber, studentMobile, email) => {
   if (parentMobile && !/^[0-9]{10}$/.test(parentMobile)) {
     throw new Error('Valid 10-digit parent mobile number is required');
+  }
+
+  if (whatsappNumber && !/^[0-9]{10}$/.test(whatsappNumber)) {
+    throw new Error('Valid 10-digit WhatsApp number is required');
   }
 
   if (studentMobile && !/^[0-9]{10}$/.test(studentMobile)) {
@@ -195,7 +204,7 @@ export const updateStudentRecord = async (studentId, updateData, photoUrl) => {
   const {
     fullName, address, dob, gender, caste,
     fatherName, fatherOccupation, motherName, motherOccupation,
-    parentMobile, studentMobile, email,
+    parentMobile, whatsappNumber, studentMobile, email,
     sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
     hscBoard, hscCollegeName, hscPercentageOrCGPA, hscMathsMarks,
     reference, admissionDate, targetExamination, standard, batch, rollno, status
@@ -214,6 +223,7 @@ export const updateStudentRecord = async (studentId, updateData, photoUrl) => {
   if (motherOccupation !== undefined) student.parents.mother.occupation = motherOccupation.trim();
 
   if (parentMobile) student.contact.parentMobile = parentMobile;
+  if (whatsappNumber) student.contact.whatsappNumber = whatsappNumber;
   if (studentMobile !== undefined) student.contact.studentMobile = studentMobile;
   if (email !== undefined) student.contact.email = email.trim();
 

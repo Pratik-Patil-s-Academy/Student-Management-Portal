@@ -148,6 +148,12 @@ const CreateStudentModal = ({
                   placeholder="10-digit mobile" maxLength={10} />
               </div>
               <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">WhatsApp Number <span className="text-red-500">*</span></label>
+                <input name="whatsappNumber" value={form.whatsappNumber} onChange={onFormChange}
+                  className="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent"
+                  placeholder="10-digit mobile" maxLength={10} />
+              </div>
+              <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Student Mobile</label>
                 <input name="studentMobile" value={form.studentMobile} onChange={onFormChange}
                   className="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2C3E50] focus:border-transparent"

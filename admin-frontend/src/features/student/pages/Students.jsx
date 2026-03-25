@@ -16,7 +16,7 @@ const EMPTY_FORM = {
   // Parents
   fatherName: '', fatherOccupation: '', motherName: '', motherOccupation: '',
   // Contact
-  parentMobile: '', studentMobile: '', email: '',
+  parentMobile: '', whatsappNumber: '', studentMobile: '', email: '',
   // Academics - SSC
   sscBoard: '', sscSchoolName: '', sscPercentageOrCGPA: '', sscMathsMarks: '',
   // Academics - HSC
@@ -233,6 +233,8 @@ const Students = () => {
     if (step === 1) {
       if (!form.parentMobile || !/^[0-9]{10}$/.test(form.parentMobile))
         return 'Valid 10-digit parent mobile is required';
+      if (!form.whatsappNumber || !/^[0-9]{10}$/.test(form.whatsappNumber))
+        return 'Valid 10-digit WhatsApp number is required';
       if (form.studentMobile && !/^[0-9]{10}$/.test(form.studentMobile))
         return 'Student mobile must be 10 digits';
       if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
