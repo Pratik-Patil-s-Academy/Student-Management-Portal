@@ -42,7 +42,7 @@ const admissionSchema = z.object({
   motherOccupation: z.string().max(100).optional(),
   parentMobile: z.string().trim().min(10, "Parent mobile is required").max(15),
   studentMobile: z.string().max(15).optional(),
-  whatsappNumber: z.string().trim().min(0, "WhatsApp number is required").max(15).refine((val) => val.length >= 10, { message: "WhatsApp number must be at least 10 digits" }),
+  whatsappNumber: z.string().trim().min(10, "WhatsApp number is required").max(15),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   sscBoard: z.enum(["State Board", "CBSE", "ICSE"]).optional(),
   sscSchoolName: z.string().max(200).optional(),
@@ -447,6 +447,11 @@ function AdmissionForm() {
                       {...register("whatsappNumber")}
                       placeholder="WhatsApp number"
                     />
+                    {errors.whatsappNumber && (
+                      <p className="text-xs text-destructive">
+                        {errors.whatsappNumber.message}
+                      </p>
+                    )}
                   </div>
                   <div className={fieldClass}>
                     <Label>Email</Label>
