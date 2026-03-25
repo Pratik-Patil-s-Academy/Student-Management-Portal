@@ -4,6 +4,7 @@ export const validateInquiryData = (data) => {
   const fullName = data.studentDetails?.fullName || data.fullName;
   const parentMobile = data.contact?.parentMobile || data.parentMobile;
   const studentMobile = data.contact?.studentMobile || data.studentMobile;
+  const whatsappNumber = data.contact?.whatsappNumber || data.whatsappNumber;
   const email = data.contact?.email || data.email;
   const gender = data.studentDetails?.gender || data.gender;
   const standard = data.standard;
@@ -16,8 +17,8 @@ export const validateInquiryData = (data) => {
     throw new Error('Valid 10-digit parent mobile number is required');
   }
 
-  if (studentMobile && !/^[0-9]{10}$/.test(studentMobile)) {
-    throw new Error('Student mobile must be 10 digits');
+  if (!whatsappNumber || !/^[0-9]{10}$/.test(whatsappNumber)) {
+    throw new Error('Valid 10-digit WhatsApp number is required');
   }
 
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -62,6 +63,7 @@ export const createInquiryRecord = async (data) => {
       contact: {
         parentMobile: data.contact?.parentMobile || '',
         studentMobile: data.contact?.studentMobile || '',
+        whatsappNumber: data.contact?.whatsappNumber || '',
         email: data.contact?.email?.trim() || ''
       },
       reference: data.reference?.trim() || '',
@@ -89,7 +91,7 @@ export const createInquiryRecord = async (data) => {
     const {
       fullName, gender, address,
       fatherName, fatherOccupation, motherName, motherOccupation,
-      parentMobile, studentMobile, email,
+      parentMobile, studentMobile, whatsappNumber, email,
       reference, interestedStudentNote, standard,
       sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
       eleventhBoard, eleventhCollegeName, eleventhPercentageOrCGPA, eleventhMathsMarks,
@@ -116,6 +118,7 @@ export const createInquiryRecord = async (data) => {
       contact: {
         parentMobile,
         studentMobile: studentMobile || '',
+        whatsappNumber: whatsappNumber || '',
         email: email?.trim() || ''
       },
       reference: reference?.trim() || '',
@@ -165,7 +168,7 @@ export const updateInquiryRecord = async (inquiryId, updateData) => {
   const {
     fullName, gender, address,
     fatherName, fatherOccupation, motherName, motherOccupation,
-    parentMobile, studentMobile, email,
+    parentMobile, studentMobile, whatsappNumber, email,
     reference, interestedStudentNote, standard,
     sscBoard, sscSchoolName, sscPercentageOrCGPA, sscMathsMarks,
     eleventhBoard, eleventhCollegeName, eleventhPercentageOrCGPA, eleventhMathsMarks,
@@ -183,6 +186,7 @@ export const updateInquiryRecord = async (inquiryId, updateData) => {
 
   if (parentMobile) inquiry.contact.parentMobile = parentMobile;
   if (studentMobile !== undefined) inquiry.contact.studentMobile = studentMobile;
+  if (whatsappNumber !== undefined) inquiry.contact.whatsappNumber = whatsappNumber;
   if (email !== undefined) inquiry.contact.email = email.trim();
 
   if (reference !== undefined) inquiry.reference = reference.trim();

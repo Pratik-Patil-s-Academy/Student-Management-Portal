@@ -8,6 +8,7 @@ const envVarsSchema = Joi.object({
   MONGO_URL: Joi.string().required().description('MongoDB Base URL'),
   dbName: Joi.string().required().description('MongoDB Database Name'),
   JWT_SEC: Joi.string().required().description('JWT Secret Key'),
+  REFRESH_TOKEN_SEC: Joi.string().required().description('Refresh Token Secret Key'),
   Cloud_Name: Joi.string().required().description('Cloudinary Cloud Name'),
   Cloud_Api: Joi.string().required().description('Cloudinary API Key'),
   Cloud_Secret: Joi.string().required().description('Cloudinary API Secret'),
@@ -29,6 +30,7 @@ const config = {
   mongoUri: envVars.MONGO_URL,
   dbName: envVars.dbName,
   jwtSecret: envVars.JWT_SEC,
+  refreshTokenSecret: envVars.REFRESH_TOKEN_SEC,
   cloudinary: {
     cloudName: envVars.Cloud_Name,
     apiKey: envVars.Cloud_Api,
