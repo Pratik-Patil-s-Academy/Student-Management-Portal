@@ -26,8 +26,9 @@ function App() {
           <ErrorBoundary>
             <Suspense fallback={<div className="flex justify-center items-center h-screen"><MessageLoading /></div>}>
               <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/old-home" element={<Index />} />
+                {/* Temporarily locked routes */}
+                {/* <Route path="/" element={<LandingPage />} /> */}
+                {/* <Route path="/old-home" element={<Index />} /> */}
                 <Route path="/enquiry" element={<InquiryForm />} />
                 <Route path="/admission" element={<AdmissionForm />} />
                 <Route path="*" element={<NotFound />} />
