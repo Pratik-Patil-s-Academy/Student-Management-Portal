@@ -84,6 +84,7 @@ function AdmissionForm() {
     setValue,
     watch,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: zodResolver(admissionSchema),
   });
@@ -223,6 +224,8 @@ function AdmissionForm() {
         },
       });
       toast.success("Admission application submitted successfully!");
+      reset();
+      setPhotoPreview(null);
       navigate("/admission");
     } catch (err) {
       const errorMessage =
