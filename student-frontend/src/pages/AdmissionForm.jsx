@@ -223,7 +223,7 @@ function AdmissionForm() {
         },
       });
       toast.success("Admission application submitted successfully!");
-      navigate("/");
+      navigate("/admission");
     } catch (err) {
       const errorMessage =
         err.response?.data?.message ||
