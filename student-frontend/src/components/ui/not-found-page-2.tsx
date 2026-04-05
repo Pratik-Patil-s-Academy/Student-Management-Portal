@@ -80,7 +80,7 @@ export function NotFoundPage() {
                 <EmptyContent>
                     <div className="flex gap-2">
                         <Button asChild>
-                            <Link to="/">
+                            <Link to="/admission">
                                 <Home className="mr-2 h-4 w-4" /> Go Home
                             </Link>
                         </Button>
