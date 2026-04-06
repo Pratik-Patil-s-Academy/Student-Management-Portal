@@ -20,33 +20,66 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(({ resolve, reject }) => {
+        if (error) reject(error);
+        else resolve(token);
+    });
+    failedQueue = [];
+};
+
 // Response Interceptor for handling token refresh
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
-        // If error is 401 (Unauthorized) and we haven't already tried to refresh
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // Skip refresh for login/refresh requests themselves
+        if (
+            error.response?.status === 401 &&
+            !originalRequest._retry &&
+            !originalRequest.url.includes('/login') &&
+            !originalRequest.url.includes('/refresh')
+        ) {
+            // If a refresh is already in progress, queue this request
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                }).then((token) => {
+                    originalRequest.headers.Authorization = `Bearer ${token}`;
+                    return api(originalRequest);
+                });
+            }
+
             originalRequest._retry = true;
+            isRefreshing = true;
 
             try {
-                // Call refresh endpoint
-                const response = await axios.post(`${API_BASE_URL}/api/admin/refresh`, {}, { withCredentials: true });
-                
+                const response = await axios.post(
+                    `${API_BASE_URL}/api/admin/refresh`,
+                    {},
+                    { withCredentials: true }
+                );
+
                 if (response.data.success) {
                     const { token } = response.data;
                     localStorage.setItem('adminToken', token);
-                    
-                    // Update header and retry original request
                     originalRequest.headers.Authorization = `Bearer ${token}`;
+                    processQueue(null, token);
                     return api(originalRequest);
                 }
             } catch (refreshError) {
-                // If refresh fails, clear token and redirect to login
+                processQueue(refreshError, null);
                 localStorage.removeItem('adminToken');
-                window.location.href = '/login';
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
                 return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
             }
         }
 

@@ -16,6 +16,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkAuth = async () => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      setAdmin(null);
+      setLoading(false);
+      return;
+    }
     try {
       const response = await api.get('/api/admin/profile');
       if (response.data.success) {
